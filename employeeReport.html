@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fako Mart – Employee Performance Report</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a1a2e;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  /* ── Page Wrapper ─────────────────────────────────────── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+
+  /* ── HEADER ───────────────────────────────────────────── */
+  .report-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    color: #fff;
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #e94560, #f5a623, #00b4d8);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .header-logo img {
+    height: 48px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+  }
+  .header-meta {
+    text-align: right;
+    font-size: 11px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+  }
+  .header-meta strong { color: rgba(255,255,255,0.9); }
+
+  .report-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .report-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.3px;
+  }
+
+  /* ── PROFILE CARD ─────────────────────────────────────── */
+  .profile-card {
+    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+    margin: 0;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    border-bottom: 3px solid #e94560;
+  }
+  .profile-avatar {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e94560, #f5a623);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+    border: 3px solid rgba(255,255,255,0.2);
+  }
+  .profile-info { flex: 1; }
+  .profile-name {
+    font-size: 20px; font-weight: 700; color: #fff;
+    margin-bottom: 4px;
+  }
+  .profile-role {
+    font-size: 12px; color: rgba(255,255,255,0.65);
+    margin-bottom: 8px;
+  }
+  .profile-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .profile-tag {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.85);
+    font-size: 10px; padding: 3px 9px; border-radius: 20px;
+    letter-spacing: 0.4px;
+  }
+  .profile-tag.active { background: rgba(46,213,115,0.2); border-color: #2ed573; color: #2ed573; }
+  .profile-tag.inactive { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
+
+  .profile-stats {
+    display: flex; flex-direction: column; gap: 6px;
+    text-align: right;
+  }
+  .stat-chip {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 8px 14px;
+    color: #fff;
+  }
+  .stat-chip .sc-label { font-size: 10px; color: rgba(255,255,255,0.55); }
+  .stat-chip .sc-value { font-size: 16px; font-weight: 700; color: #f5a623; }
+
+  /* ── CONTENT AREA ─────────────────────────────────────── */
+  .content { padding: 32px 40px; }
+
+  /* ── SECTION ──────────────────────────────────────────── */
+  .section { margin-bottom: 36px; }
+  .section-title {
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: #0f3460;
+    border-left: 4px solid #e94560;
+    padding-left: 10px;
+    margin-bottom: 16px;
+  }
+
+  /* ── KPI GRID ─────────────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: #f8f9fc;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    border-top: 3px solid #0f3460;
+  }
+  .kpi-card.accent-red   { border-top-color: #e94560; }
+  .kpi-card.accent-gold  { border-top-color: #f5a623; }
+  .kpi-card.accent-teal  { border-top-color: #00b4d8; }
+  .kpi-card.accent-green { border-top-color: #2ed573; }
+  .kpi-label { font-size: 10px; color: #7f8c9a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 700; color: #1a1a2e; line-height: 1.1; }
+  .kpi-sub   { font-size: 10px; color: #aab2bd; margin-top: 2px; }
+
+  /* ── GRADE BADGE ──────────────────────────────────────── */
+  .grade-badge {
+    display: inline-block;
+    width: 36px; height: 36px; line-height: 36px;
+    border-radius: 50%; text-align: center;
+    font-size: 15px; font-weight: 800;
+  }
+  .grade-A { background: #d4edda; color: #155724; }
+  .grade-B { background: #d1ecf1; color: #0c5460; }
+  .grade-C { background: #fff3cd; color: #856404; }
+  .grade-D { background: #f8d7da; color: #721c24; }
+
+  /* ── SCORE RADAR / DIM TABLE ──────────────────────────── */
+  .dim-table { width: 100%; border-collapse: collapse; }
+  .dim-table th, .dim-table td {
+    padding: 9px 12px; text-align: left;
+    border-bottom: 1px solid #eef0f4;
+    font-size: 12px;
+  }
+  .dim-table th {
+    background: #f4f6f9; font-weight: 600;
+    color: #4a5568; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.5px;
+  }
+  .dim-table tr:last-child td { border-bottom: none; }
+  .dim-table tr:hover td { background: #fafbfc; }
+
+  .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar-bg {
+    flex: 1; height: 7px; background: #eef0f4; border-radius: 4px; overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #0f3460, #00b4d8);
+    transition: width 0.3s ease;
+  }
+  .score-bar-fill.high  { background: linear-gradient(90deg, #27ae60, #2ed573); }
+  .score-bar-fill.mid   { background: linear-gradient(90deg, #f39c12, #f5a623); }
+  .score-bar-fill.low   { background: linear-gradient(90deg, #c0392b, #e94560); }
+  .score-num { font-size: 12px; font-weight: 700; color: #1a1a2e; width: 28px; text-align: right; }
+
+  /* ── MONTHLY REVIEW CARDS ─────────────────────────────── */
+  .review-cards { display: flex; gap: 12px; flex-wrap: wrap; }
+  .review-card {
+    flex: 1; min-width: 200px;
+    background: #f8f9fc;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .review-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .review-month { font-weight: 700; font-size: 13px; color: #0f3460; }
+  .review-reviewer { font-size: 10px; color: #aab2bd; margin-bottom: 8px; }
+  .review-feedback { font-size: 11px; line-height: 1.5; }
+  .review-feedback .label { font-weight: 600; color: #4a5568; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .review-feedback .text-green { color: #27ae60; }
+  .review-feedback .text-orange { color: #e67e22; }
+
+  /* ── DATA TABLE ───────────────────────────────────────── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    background: #0f3460; color: #fff;
+    padding: 9px 12px; text-align: left;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #eef0f4;
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:nth-child(even) td { background: #fafbfc; }
+  .data-table tr:hover td { background: #f0f4ff; }
+
+  /* ── BADGES ───────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .badge-green   { background: #d4edda; color: #155724; }
+  .badge-yellow  { background: #fff3cd; color: #856404; }
+  .badge-red     { background: #f8d7da; color: #721c24; }
+  .badge-blue    { background: #cce5ff; color: #004085; }
+  .badge-purple  { background: #e2d9f3; color: #4a1d8c; }
+  .badge-gray    { background: #e9ecef; color: #495057; }
+
+  /* ── TREND INDICATOR ──────────────────────────────────── */
+  .trend-up   { color: #27ae60; }
+  .trend-down { color: #e94560; }
+  .trend-flat { color: #aab2bd; }
+
+  /* ── EMPTY STATE ──────────────────────────────────────── */
+  .empty-state {
+    text-align: center; padding: 24px;
+    color: #aab2bd; font-size: 12px;
+    background: #fafbfc; border-radius: 8px;
+    border: 1px dashed #dde1e7;
+  }
+
+  /* ── FOOTER ───────────────────────────────────────────── */
+  .report-footer {
+    border-top: 1px solid #eef0f4;
+    padding: 16px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-img img { height: 30px; object-fit: contain; opacity: 0.6; }
+  .footer-text { font-size: 10px; color: #aab2bd; text-align: right; line-height: 1.6; }
+</style>
+</head>
+
+<body>
+<?
+  var d     = reportData;
+  var p     = d.profile;
+  var sa    = d.scoreAgg;
+  var isW   = d.employeeType === "Worker";
+
+  // Avatar initials
+  var names    = p.fullName.split(" ");
+  var initials = names.map(function(n){ return n[0]; }).slice(0,2).join("").toUpperCase();
+
+  // Grade colour
+  function gradeClass(g) { return "grade-" + (g || "D").replace(/[^A-D]/g,"D"); }
+
+  // Bar colour class
+  function barClass(score) {
+    if (score >= 8) return "high";
+    if (score >= 6) return "mid";
+    return "low";
+  }
+
+  // Month display
+  function prettyMonth(ym) {
+    var parts = ym.split("-");
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return months[parseInt(parts[1])-1] + " " + parts[0];
+  }
+
+  // Dimension labels
+  var dimLabels = {
+    punctuality   : "Punctuality",
+    attendance    : "Attendance",
+    communication : "Communication",
+    effectiveness : "Effectiveness",
+    efficiency    : "Efficiency",
+    coordination  : "Coordination"
+  };
+
+  // Trend icon
+  var trendIcon = sa && sa.trend === "improving" ? "▲" :
+                  sa && sa.trend === "declining"  ? "▼" : "→";
+  var trendCls  = sa && sa.trend === "improving" ? "trend-up" :
+                  sa && sa.trend === "declining"  ? "trend-down" : "trend-flat";
+?>
+
+<!-- ═══ HEADER ═════════════════════════════════════════════ -->
+<div class="report-header">
+  <div class="header-top">
+    <div class="header-logo">
+      <img src="<?= logoUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+    </div>
+    <div class="header-meta">
+      <div><strong>Report Type:</strong> Employee Performance</div>
+      <div><strong>Period:</strong> <?= d.month ?> <?= d.year ?></div>
+      <div><strong>Generated:</strong> <?= d.reportDate ?></div>
+      <div><strong>ID:</strong> <?= p.id ?></div>
+    </div>
+  </div>
+  <div class="report-title">Employee Performance Report</div>
+  <div class="report-subtitle">Fako Mart · <?= d.month ?> <?= d.year ?> · <?= d.employeeType ?> Assessment</div>
+</div>
+
+<!-- ═══ PROFILE CARD ════════════════════════════════════════ -->
+<div class="profile-card">
+  <div class="profile-avatar"><?= initials ?></div>
+  <div class="profile-info">
+    <div class="profile-name"><?= p.fullName ?></div>
+    <div class="profile-role"><?= p.position ?> · <?= p.department ?></div>
+    <div class="profile-tags">
+      <span class="profile-tag <?= p.status === 'Active' ? 'active' : 'inactive' ?>"><?= p.status ?></span>
+      <span class="profile-tag"><?= d.employeeType ?></span>
+      <? if (p.gender) { ?><span class="profile-tag"><?= p.gender ?></span><? } ?>
+      <span class="profile-tag">Since <?= p.dateHired ?></span>
+      <? if (p.reportsTo) { ?><span class="profile-tag">Reports to <?= p.reportsTo ?></span><? } ?>
+    </div>
+  </div>
+  <div class="profile-stats">
+    <div class="stat-chip">
+      <div class="sc-label">Base Salary</div>
+      <div class="sc-value"><?= (p.baseSalary || 0).toLocaleString() ?></div>
+      <div class="sc-label">XAF / month</div>
+    </div>
+    <? if (sa) { ?>
+    <div class="stat-chip">
+      <div class="sc-label">Avg Score</div>
+      <div class="sc-value"><?= sa.avgOverall ?>/10</div>
+      <div class="sc-label">Grade <?= sa.avgGrade ?> · <span class="<?= trendCls ?>"><?= trendIcon ?> <?= sa.trend ?></span></div>
+    </div>
+    <? } ?>
+  </div>
+</div>
+
+<!-- ═══ CONTENT ══════════════════════════════════════════════ -->
+<div class="content">
+
+<!-- ── KPI STRIP ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Performance Snapshot · <?= d.month ?> <?= d.year ?></div>
+  <div class="kpi-grid">
+
+    <div class="kpi-card accent-teal">
+      <div class="kpi-label">Avg Score</div>
+      <div class="kpi-value"><?= sa ? sa.avgOverall : "—" ?></div>
+      <div class="kpi-sub">out of 10.0</div>
+    </div>
+
+    <div class="kpi-card accent-gold">
+      <div class="kpi-label">Grade</div>
+      <div class="kpi-value">
+        <span class="grade-badge <?= sa ? gradeClass(sa.avgGrade) : "grade-D" ?>"><?= sa ? sa.avgGrade : "—" ?></span>
+      </div>
+      <div class="kpi-sub"><?= sa && sa.avgGrade === "A" ? "Outstanding" : sa && sa.avgGrade === "B" ? "Good" : sa && sa.avgGrade === "C" ? "Satisfactory" : "Needs Improvement" ?></div>
+    </div>
+
+    <div class="kpi-card accent-green">
+      <div class="kpi-label">Bonus Earned</div>
+      <div class="kpi-value"><?= (d.totalBonus || 0).toLocaleString() ?></div>
+      <div class="kpi-sub">XAF · <?= d.bonuses.length ?> award<?= d.bonuses.length !== 1 ? "s" : "" ?></div>
+    </div>
+
+    <div class="kpi-card accent-red">
+      <div class="kpi-label">Errands Run</div>
+      <div class="kpi-value"><?= d.errands.length ?></div>
+      <div class="kpi-sub">this period</div>
+    </div>
+
+  </div>
+
+  <? if (isW && d.sales) { ?>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Sales Transactions</div>
+      <div class="kpi-value"><?= d.sales.transactions ?></div>
+      <div class="kpi-sub">served personally</div>
+    </div>
+    <div class="kpi-card accent-teal">
+      <div class="kpi-label">Revenue Generated</div>
+      <div class="kpi-value"><?= (d.sales.totalRevenue || 0).toLocaleString() ?></div>
+      <div class="kpi-sub">XAF total</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg per Sale</div>
+      <div class="kpi-value"><?= (d.sales.avgPerSale || 0).toLocaleString() ?></div>
+      <div class="kpi-sub">XAF</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Incidents Reported</div>
+      <div class="kpi-value"><?= d.incidents.length ?></div>
+      <div class="kpi-sub">logged this period</div>
+    </div>
+  </div>
+  <? } ?>
+</div>
+
+<!-- ── SCORE BREAKDOWN ────────────────────────────────────── -->
+<? if (sa) { ?>
+<div class="section">
+  <div class="section-title">Score Breakdown by Dimension</div>
+  <table class="dim-table">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>Average Score</th>
+        <th>Visual</th>
+        <th>Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? Object.keys(sa.dimAvg).forEach(function(k) {
+        var score = sa.dimAvg[k];
+        var pct   = score ? (score / 10 * 100).toFixed(0) : 0;
+        var cls   = barClass(score);
+      ?>
+      <tr>
+        <td style="font-weight:600"><?= dimLabels[k] || k ?></td>
+        <td><strong><?= score !== null ? score : "—" ?></strong><span style="color:#aab2bd"> / 10</span></td>
+        <td>
+          <div class="score-bar-wrap">
+            <div class="score-bar-bg">
+              <div class="score-bar-fill <?= cls ?>" style="width:<?= pct ?>%"></div>
+            </div>
+            <span class="score-num"><?= pct ?>%</span>
+          </div>
+        </td>
+        <td><span class="grade-badge <?= gradeClass(fmGrade !== undefined ? (score >= 8 ? 'A' : score >= 6 ? 'B' : score >= 4 ? 'C' : 'D') : 'D') ?>">
+          <?= score !== null ? (score >= 8 ? "A" : score >= 6 ? "B" : score >= 4 ? "C" : "D") : "—" ?>
+        </span></td>
+      </tr>
+      <? }); ?>
+    </tbody>
+  </table>
+</div>
+<? } ?>
+
+<!-- ── MONTHLY REVIEW CARDS ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Monthly Review Detail</div>
+  <? if (d.reviews.length) { ?>
+  <div class="review-cards">
+    <? d.reviews.forEach(function(rv) { ?>
+    <div class="review-card">
+      <div class="review-card-header">
+        <span class="review-month"><?= prettyMonth(rv.month) ?></span>
+        <span class="grade-badge <?= gradeClass(rv.grade) ?>"><?= rv.grade ?></span>
+      </div>
+      <div class="review-reviewer">Reviewed by: <?= rv.reviewedBy || "—" ?></div>
+      <div style="margin-bottom:8px">
+        <? Object.keys(rv.dims).forEach(function(k) {
+          var sc = rv.dims[k];
+          var pct = sc ? (sc/10*100).toFixed(0) : 0;
+        ?>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span style="font-size:10px;color:#7f8c9a;width:85px;flex-shrink:0"><?= dimLabels[k] || k ?></span>
+          <div class="score-bar-bg" style="flex:1">
+            <div class="score-bar-fill <?= barClass(sc) ?>" style="width:<?= pct ?>%"></div>
+          </div>
+          <span style="font-size:10px;font-weight:700;width:22px;text-align:right"><?= sc || "—" ?></span>
+        </div>
+        <? }); ?>
+      </div>
+      <div class="review-feedback">
+        <? if (rv.strengths) { ?>
+        <div class="label">✓ Strengths</div>
+        <div class="text-green" style="margin-bottom:5px"><?= rv.strengths ?></div>
+        <? } ?>
+        <? if (rv.improvements) { ?>
+        <div class="label">↑ Improve</div>
+        <div class="text-orange"><?= rv.improvements ?></div>
+        <? } ?>
+      </div>
+      <div style="margin-top:8px">
+        <span class="badge <?= rv.status === 'Submitted' ? 'badge-green' : 'badge-yellow' ?>"><?= rv.status ?></span>
+      </div>
+    </div>
+    <? }); ?>
+  </div>
+  <? } else { ?>
+  <div class="empty-state">No reviews recorded for this period.</div>
+  <? } ?>
+</div>
+
+<!-- ── BONUSES ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Bonus Awards</div>
+  <? if (d.bonuses.length) { ?>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Type</th>
+        <th>Amount (XAF)</th>
+        <th>Approved By</th>
+        <th>Reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? d.bonuses.forEach(function(b) { ?>
+      <tr>
+        <td><?= prettyMonth(b.month) ?></td>
+        <td>
+          <span class="badge <?= b.type === 'Performance' ? 'badge-blue' : b.type === 'Sales Target' ? 'badge-green' : 'badge-purple' ?>">
+            <?= b.type ?>
+          </span>
+        </td>
+        <td style="font-weight:700;color:#0f3460"><?= (b.amount || 0).toLocaleString() ?></td>
+        <td><?= b.approvedBy ?></td>
+        <td><?= b.reason ?></td>
+      </tr>
+      <? }); ?>
+    </tbody>
+  </table>
+  <div style="margin-top:10px;text-align:right;font-size:12px;color:#0f3460">
+    <strong>Total Bonuses: <?= (d.totalBonus || 0).toLocaleString() ?> XAF</strong>
+  </div>
+  <? } else { ?>
+  <div class="empty-state">No bonus awards recorded for this period.</div>
+  <? } ?>
+</div>
+
+<!-- ── SALES BY CATEGORY (Workers only) ──────────────────── -->
+<? if (isW && d.sales && d.sales.transactions > 0) { ?>
+<div class="section">
+  <div class="section-title">Sales Activity by Category</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Revenue (XAF)</th>
+        <th>Share</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? var cats = Object.keys(d.sales.byCategory).sort(function(a,b){ return d.sales.byCategory[b]-d.sales.byCategory[a]; });
+         cats.forEach(function(cat) {
+           var rev  = d.sales.byCategory[cat];
+           var pct  = d.sales.totalRevenue ? (rev/d.sales.totalRevenue*100).toFixed(1) : 0;
+      ?>
+      <tr>
+        <td style="font-weight:600"><?= cat ?></td>
+        <td><?= (rev || 0).toLocaleString() ?></td>
+        <td>
+          <div class="score-bar-wrap">
+            <div class="score-bar-bg"><div class="score-bar-fill" style="width:<?= pct ?>%;background:linear-gradient(90deg,#0f3460,#00b4d8)"></div></div>
+            <span class="score-num"><?= pct ?>%</span>
+          </div>
+        </td>
+      </tr>
+      <? }); ?>
+    </tbody>
+  </table>
+</div>
+<? } ?>
+
+<!-- ── ERRANDS ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Errands · <?= d.errands.length ?> Assignment<?= d.errands.length !== 1 ? "s" : "" ?></div>
+  <? if (d.errands.length) { ?>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Destination</th>
+        <th>Reason</th>
+        <th>Cost (XAF)</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? d.errands.forEach(function(e) { ?>
+      <tr>
+        <td><?= e.date ?></td>
+        <td><span class="badge badge-blue"><?= e.type ?></span></td>
+        <td><?= e.destination ?></td>
+        <td><?= e.reason ?></td>
+        <td><?= (e.cost || 0).toLocaleString() ?></td>
+        <td>
+          <span class="badge <?= e.status === 'Completed' ? 'badge-green' : e.status === 'Pending' ? 'badge-yellow' : 'badge-red' ?>">
+            <?= e.status ?>
+          </span>
+        </td>
+      </tr>
+      <? }); ?>
+    </tbody>
+  </table>
+  <? } else { ?>
+  <div class="empty-state">No errands assigned to this employee in this period.</div>
+  <? } ?>
+</div>
+
+<!-- ── INCIDENTS REPORTED ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Incidents & Repairs Reported</div>
+  <? if (d.incidents.length) { ?>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Equipment</th>
+        <th>Issue</th>
+        <th>Severity</th>
+        <th>Cost (XAF)</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? d.incidents.forEach(function(inc) { ?>
+      <tr>
+        <td><?= inc.date ?></td>
+        <td style="font-weight:600"><?= inc.item ?></td>
+        <td><?= inc.description ?></td>
+        <td>
+          <span class="badge <?= inc.severity === 'High' ? 'badge-red' : inc.severity === 'Medium' ? 'badge-yellow' : 'badge-green' ?>">
+            <?= inc.severity ?>
+          </span>
+        </td>
+        <td><?= (inc.cost || 0).toLocaleString() ?></td>
+        <td>
+          <span class="badge <?= inc.status === 'Resolved' ? 'badge-green' : inc.status === 'Pending' ? 'badge-yellow' : 'badge-blue' ?>">
+            <?= inc.status ?>
+          </span>
+        </td>
+      </tr>
+      <? }); ?>
+    </tbody>
+  </table>
+  <? } else { ?>
+  <div class="empty-state">No incidents reported by this employee in this period.</div>
+  <? } ?>
+</div>
+
+</div><!-- /content -->
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
+<div class="report-footer">
+  <div class="footer-img">
+    <img src="<?= footerUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+  </div>
+  <div class="footer-text">
+    Fako Mart Employee Performance Report · <?= d.month ?> <?= d.year ?><br>
+    Generated on <?= d.reportDate ?> · Confidential — Internal Use Only
+  </div>
+</div>
+
+</body>
+</html>
