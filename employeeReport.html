@@ -272,6 +272,113 @@
   }
   .footer-img img { height: 30px; object-fit: contain; opacity: 0.6; }
   .footer-text { font-size: 10px; color: #aab2bd; text-align: right; line-height: 1.6; }
+
+  /* ══════════════════════════════════════════════════════════
+     NATIVE PRINT / DOWNLOAD-AS-PDF SETUP
+     The "Download PDF" button simply calls window.print(). The
+     browser's print dialog (with "Save as PDF" as the destination)
+     produces the PDF — no server-side conversion needed.
+  ══════════════════════════════════════════════════════════ */
+  @page :first { size: A4 portrait; margin: 16mm 12mm 14mm 12mm; }
+  @page         { size: A4 portrait; margin: 16mm 12mm 14mm 12mm; }
+
+  /* ── BROWSER-ONLY TOOLBAR (hidden in print) ── */
+  .preview-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+    background: #1a1a2e;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .preview-toolbar-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, #b71c1c, #e94560);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border: none;
+    border-radius: 7px;
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-download:hover {
+    background: linear-gradient(135deg, #e94560, #b71c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(233,69,96,0.3);
+  }
+
+  /* ── PRINT-ONLY FIXED HEADER (repeats on every printed page) ── */
+  .print-header { display: none; }
+  @media print {
+    .print-header {
+      display: block;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 9mm;
+      background: #fff;
+      z-index: 600;
+    }
+    .print-header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 100%;
+      padding: 0 12mm;
+      border-bottom: 1px solid #0f3460;
+    }
+    .print-header-inner span {
+      font-size: 7pt;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #1a1a2e;
+    }
+  }
+
+  /* ── PRINT-ONLY FIXED FOOTER (repeats on every printed page) ── */
+  .print-footer { display: none; }
+  @media print {
+    .print-footer {
+      display: block;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      text-align: center;
+      z-index: 500;
+      padding: 2px 0;
+    }
+    .print-footer img { max-height: 9mm; display: inline-block; opacity: 0.7; }
+  }
+
+  /* ── PRINT OVERRIDES ── */
+  @media print {
+    .preview-toolbar { display: none !important; }
+    .page { box-shadow: none !important; max-width: none !important; }
+    body { background: #fff; }
+
+    .data-table, .dim-table { page-break-inside: auto; }
+    .data-table tr, .dim-table tr { page-break-inside: avoid; page-break-after: auto; }
+    .data-table thead, .dim-table thead { display: table-header-group; }
+    .kpi-grid, .review-cards { page-break-inside: avoid; }
+    .section { page-break-inside: avoid; }
+
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 </style>
 </head>
 
@@ -319,6 +426,36 @@
   var trendCls  = sa && sa.trend === "improving" ? "trend-up" :
                   sa && sa.trend === "declining"  ? "trend-down" : "trend-flat";
 ?>
+
+<!-- ══════════════════════════════════════════
+     BROWSER-ONLY TOOLBAR (hidden in print)
+══════════════════════════════════════════ -->
+<div class="preview-toolbar">
+  <span class="preview-toolbar-title">Fako Mart — <?= d.month ?> <?= d.year ?> Employee Performance Report</span>
+  <button class="btn-download" onclick="window.print()">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6.5 1v8M3.5 6.5l3 3 3-3M1 10.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Download PDF
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PRINT-ONLY FIXED HEADER (repeats on every printed page)
+══════════════════════════════════════════ -->
+<div class="print-header">
+  <div class="print-header-inner">
+    <span>Fako Mart</span>
+    <span><?= d.month ?> <?= d.year ?> Employee Performance Report</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PRINT-ONLY FIXED FOOTER (repeats on every printed page)
+══════════════════════════════════════════ -->
+<div class="print-footer">
+  <img src="<?= footerUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+</div>
 
 <!-- ═══ HEADER ═════════════════════════════════════════════ -->
 <div class="report-header">
