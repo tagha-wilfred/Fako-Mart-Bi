@@ -26,6 +26,12 @@
 //  ENTRY POINTS
 //    generateEmployeeReport(employeeId, months, year)
 //    previewFromFakoSidebar(employeeId, months, year)
+//
+//  PDF DOWNLOAD: handled entirely client-side. The report preview
+//  (employeeReport.html) includes a "Download PDF" button that calls
+//  window.print() — the browser's native print-to-PDF flow renders
+//  the already-styled report using @page / @media print CSS rules.
+//  No server-side conversion or Drive API access is required.
 // ============================================================
 
 
@@ -256,6 +262,7 @@ function getEmployeeReportData(employeeId, months, year, employeeType) {
     // Meta
     reportDate   : fmFormatDate(new Date()),
     month        : monthLabel,
+    monthsList   : monthsArr,
     year         : String(year),
     employeeType : employeeType,
 
