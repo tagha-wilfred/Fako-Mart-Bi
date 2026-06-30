@@ -262,12 +262,15 @@
 
   <!-- Status -->
   <div class="status-box" id="statusBox"></div>
-  <div class="spinner" id="spinner">Building report…</div>
+  <div class="spinner" id="spinner">Please wait…</div>
 
   <!-- Generate Button -->
   <button class="btn btn-primary" id="generateBtn" onclick="generateReport()" disabled>
-    Preview Report
+    👁 Preview Report
   </button>
+  <p style="font-size:10px;color:#aab2bd;text-align:center;margin-top:-4px">
+    The report opens with a Download PDF button built in.
+  </p>
 
 </div><!-- /sidebar-body -->
 
@@ -392,7 +395,7 @@
         if (result && result.error) {
           setStatus("error", "Error: " + result.error);
         } else {
-          setStatus("success", "✓ Report opened successfully.");
+          setStatus("success", "✓ Report opened — use the Download PDF button inside it to save.");
         }
       })
       .withFailureHandler(function(e) {
