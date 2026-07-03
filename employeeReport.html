@@ -26,7 +26,7 @@
 
   /* ── HEADER ───────────────────────────────────────────── */
   .report-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    background: #1a1a2e;
     color: #fff;
     padding: 32px 40px 28px;
     position: relative;
@@ -37,7 +37,7 @@
     position: absolute;
     bottom: -1px; left: 0; right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #e94560, #f5a623, #00b4d8);
+    background: #0f3460;
   }
 
   .header-top {
@@ -73,7 +73,7 @@
 
   /* ── PROFILE CARD ─────────────────────────────────────── */
   .profile-card {
-    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+    background: #0f3460;
     margin: 0;
     padding: 24px 40px;
     display: flex;
@@ -84,7 +84,7 @@
   .profile-avatar {
     width: 68px; height: 68px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #e94560, #f5a623);
+    background: #e94560;
     display: flex; align-items: center; justify-content: center;
     font-size: 24px; font-weight: 700; color: #fff;
     flex-shrink: 0;
@@ -193,12 +193,12 @@
   }
   .score-bar-fill {
     height: 100%; border-radius: 4px;
-    background: linear-gradient(90deg, #0f3460, #00b4d8);
+    background: #0f3460;
     transition: width 0.3s ease;
   }
-  .score-bar-fill.high  { background: linear-gradient(90deg, #27ae60, #2ed573); }
-  .score-bar-fill.mid   { background: linear-gradient(90deg, #f39c12, #f5a623); }
-  .score-bar-fill.low   { background: linear-gradient(90deg, #c0392b, #e94560); }
+  .score-bar-fill.high  { background: #27ae60; }
+  .score-bar-fill.mid   { background: #f39c12; }
+  .score-bar-fill.low   { background: #c0392b; }
   .score-num { font-size: 12px; font-weight: 700; color: #1a1a2e; width: 28px; text-align: right; }
 
   /* ── MONTHLY REVIEW CARDS ─────────────────────────────── */
@@ -305,7 +305,7 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    background: linear-gradient(135deg, #b71c1c, #e94560);
+    background: #b71c1c;
     color: #fff;
     font-size: 12px;
     font-weight: 700;
@@ -317,7 +317,7 @@
     transition: all 0.2s;
   }
   .btn-download:hover {
-    background: linear-gradient(135deg, #e94560, #b71c1c);
+    background: #e94560;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(233,69,96,0.3);
   }
@@ -714,7 +714,7 @@
         <td><?= (rev || 0).toLocaleString() ?></td>
         <td>
           <div class="score-bar-wrap">
-            <div class="score-bar-bg"><div class="score-bar-fill" style="width:<?= pct ?>%;background:linear-gradient(90deg,#0f3460,#00b4d8)"></div></div>
+            <div class="score-bar-bg"><div class="score-bar-fill" style="width:<?= pct ?>%;background:#0f3460"></div></div>
             <span class="score-num"><?= pct ?>%</span>
           </div>
         </td>
