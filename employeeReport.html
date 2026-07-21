@@ -1,416 +1,353 @@
 <!DOCTYPE html>
+<!--
+  employeeReport.html  —  Fako Mart BI System
+  PRESENTATION LAYER — Employee Performance Report
+  Same brand language + header/footer skeleton as clientReport.html:
+    • Cream page background   • Dark navy anchor color
+    • Soft light-blue bars    • Pill-shaped section headers
+    • Big bold Montserrat headline on the cover
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fako Mart – Employee Performance Report</title>
+<title><?= reportData.month ?> <?= reportData.year ?> — Employee Performance Report</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
 <style>
-  /* ── Reset & Base ─────────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --cream       : #F4F1E8;
+    --panel       : #FFFFFF;
+    --navy        : #14213D;
+    --navy-2      : #1D3059;
+    --blue        : #A9CCEA;
+    --blue-pale   : #EAF3FB;
+    --border      : #E7E2D4;
+    --grey        : #8B8F97;
+    --green       : #2D8A3E;
+    --red         : #B71C1C;
+    --amber       : #B45309;
+    --font-brand  : 'Montserrat', sans-serif;
+    --pad-x       : 42px;
+  }
+
+  @page :first { size: A4 portrait; margin: 22mm 14mm 14mm 14mm; }
+  @page         { size: A4 portrait; margin: 22mm 14mm 14mm 14mm; }
+
   body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f4f6f9;
-    color: #1a1a2e;
-    font-size: 13px;
-    line-height: 1.55;
+    background: #d8d5cb;
+    font-family: var(--font-brand);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  /* ── Page Wrapper ─────────────────────────────────────── */
-  .page {
-    max-width: 900px;
-    margin: 0 auto;
-    background: #fff;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-  }
-
-  /* ── HEADER ───────────────────────────────────────────── */
-  .report-header {
-    background: #1a1a2e;
-    color: #fff;
-    padding: 32px 40px 28px;
-    position: relative;
-    overflow: hidden;
-  }
-  .report-header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 0; right: 0;
-    height: 4px;
-    background: #0f3460;
-  }
-
-  .header-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  .header-logo img {
-    height: 48px;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-  }
-  .header-meta {
-    text-align: right;
-    font-size: 11px;
-    color: rgba(255,255,255,0.65);
-    line-height: 1.7;
-  }
-  .header-meta strong { color: rgba(255,255,255,0.9); }
-
-  .report-title {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-  }
-  .report-subtitle {
-    font-size: 13px;
-    color: rgba(255,255,255,0.7);
-    letter-spacing: 0.3px;
-  }
-
-  /* ── PROFILE CARD ─────────────────────────────────────── */
-  .profile-card {
-    background: #0f3460;
-    margin: 0;
-    padding: 24px 40px;
+  /* ══ BROWSER-ONLY TOOLBAR ══ */
+  .preview-toolbar {
+    position: sticky;
+    top: 0; left: 0; right: 0;
+    z-index: 2000;
+    background: var(--navy);
+    padding: 10px 20px;
     display: flex;
     align-items: center;
-    gap: 24px;
-    border-bottom: 3px solid #e94560;
+    justify-content: space-between;
   }
-  .profile-avatar {
-    width: 68px; height: 68px;
-    border-radius: 50%;
-    background: #e94560;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: 700; color: #fff;
-    flex-shrink: 0;
-    border: 3px solid rgba(255,255,255,0.2);
-  }
-  .profile-info { flex: 1; }
-  .profile-name {
-    font-size: 20px; font-weight: 700; color: #fff;
-    margin-bottom: 4px;
-  }
-  .profile-role {
-    font-size: 12px; color: rgba(255,255,255,0.65);
-    margin-bottom: 8px;
-  }
-  .profile-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .profile-tag {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.85);
-    font-size: 10px; padding: 3px 9px; border-radius: 20px;
-    letter-spacing: 0.4px;
-  }
-  .profile-tag.active { background: rgba(46,213,115,0.2); border-color: #2ed573; color: #2ed573; }
-  .profile-tag.inactive { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
-
-  .profile-stats {
-    display: flex; flex-direction: column; gap: 6px;
-    text-align: right;
-  }
-  .stat-chip {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 8px; padding: 8px 14px;
+  .preview-toolbar-title {
+    font-family: var(--font-brand);
+    font-weight: 700; font-size: 11px;
     color: #fff;
+    letter-spacing: 0.5px; text-transform: uppercase;
   }
-  .stat-chip .sc-label { font-size: 10px; color: rgba(255,255,255,0.55); }
-  .stat-chip .sc-value { font-size: 16px; font-weight: 700; color: #f5a623; }
+  .btn-download {
+    background: var(--cream);
+    color: var(--navy);
+    font-family: var(--font-brand);
+    font-weight: 800; font-size: 12px;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    border: none; padding: 9px 20px;
+    cursor: pointer; border-radius: 999px;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.15s;
+  }
+  .btn-download:hover { background: var(--blue); }
 
-  /* ── CONTENT AREA ─────────────────────────────────────── */
-  .content { padding: 32px 40px; }
+  /* ══ PRINT-ONLY HEADER ══ */
+  .print-header { display: none; }
+  @media print {
+    .print-header {
+      display: block; position: fixed;
+      top: 0; left: 0; right: 0; height: 8mm;
+      background: var(--cream); z-index: 600;
+    }
+    .print-header-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      height: 100%; padding: 0 14mm;
+      border-bottom: 1px solid var(--navy);
+    }
+    .print-header-inner span {
+      font-family: var(--font-brand); font-size: 6pt; font-weight: 600;
+      color: var(--navy); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+  }
 
-  /* ── SECTION ──────────────────────────────────────────── */
-  .section { margin-bottom: 36px; }
-  .section-title {
-    font-size: 13px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1px;
-    color: #0f3460;
-    border-left: 4px solid #e94560;
-    padding-left: 10px;
+  /* ══ PRINT-ONLY FOOTER ══ */
+  .print-footer { display: none; }
+  @media print {
+    .print-footer {
+      display: block; position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--cream);
+      text-align: center; z-index: 500; padding: 2px 0;
+    }
+    .print-footer img { max-height: 10mm; display: inline-block; }
+  }
+
+  /* ══ PRINT OVERRIDES ══ */
+  @media print {
+    .preview-toolbar { display: none !important; }
+    .report-wrapper { padding-top: 0 !important; box-shadow: none !important; max-width: none !important; }
+    body { background: var(--cream); }
+    .data-table, .dim-table { page-break-inside: auto; }
+    .data-table tr, .dim-table tr { page-break-inside: avoid; page-break-after: auto; }
+    .data-table thead, .dim-table thead { display: table-header-group; }
+    .section-break { page-break-before: always; }
+    .kpi-row, .review-cards, .month-cards, .h-bar-chart { page-break-inside: avoid; }
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ══ REPORT WRAPPER ══ */
+  .report-wrapper {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: var(--cream);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    padding-top: 0;
+  }
+
+
+  /* ══ COVER HEADER ══ */
+  .cover-header { padding: 10px var(--pad-x) 0; background: var(--cream); }
+  .cover-top-row { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 6px; }
+  .logo-block img { height: 44px; width: auto; display: block; object-fit: contain; }
+
+  .cover-headline {
+    font-family: var(--font-brand); font-weight: 900; font-size: 30px;
+    color: var(--navy); text-transform: uppercase; letter-spacing: 0.2px;
+    line-height: 1.1; margin-bottom: 10px;
+  }
+  .cover-subline {
+    font-family: var(--font-brand); font-weight: 500; font-size: 12.5px;
+    color: #3f4a63; max-width: 520px; line-height: 1.5; margin-bottom: 18px;
+  }
+  .header-rule { height: 6px; background: var(--navy); width: 100%; border-radius: 3px 3px 0 0; }
+
+  /* ── Slim header for inner pages ── */
+  .slim-header { display: flex; flex-direction: column; }
+  .slim-header-top { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 28px 8px; }
+  .slim-header-company { font-family: var(--font-brand); font-weight: 800; font-size: 11px; letter-spacing: 1px; color: var(--navy); text-transform: uppercase; }
+  .slim-header-period  { font-family: var(--font-brand); font-weight: 600; font-size: 10px; letter-spacing: 0.5px; color: var(--grey); text-transform: uppercase; }
+  .slim-header-rule { height: 4px; background: var(--navy); width: 100%; }
+
+  /* ══ HERO BAND (navy, reversed text) ══ */
+  .hero-band {
+    background: var(--navy); padding: 20px var(--pad-x);
+    display: flex; align-items: center; gap: 18px;
+  }
+  .hero-avatar {
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    background: var(--blue); color: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-brand); font-weight: 800; font-size: 18px;
+    border: 2px solid rgba(255,255,255,0.25);
+  }
+  .hero-info { flex: 1; }
+  .hero-client { font-family: var(--font-brand); font-weight: 800; font-size: 18px; color: #fff; text-transform: uppercase; letter-spacing: 0.4px; }
+  .hero-sub    { font-family: var(--font-brand); font-weight: 600; font-size: 11px; color: var(--blue); margin-top: 2px; }
+  .hero-tags   { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .hero-tag {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; font-family: var(--font-brand); font-size: 9px; font-weight: 700;
+    padding: 3px 10px; border-radius: 999px; letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .hero-tag.active   { background: rgba(45,138,62,0.25); border-color: var(--green); color: #8fe3a3; }
+  .hero-tag.inactive { background: rgba(183,28,28,0.25); border-color: var(--red);   color: #f2a7a7; }
+
+  /* ══ CONTENT ══ */
+  .content { padding: 26px var(--pad-x) 0; background: var(--cream); }
+
+  /* Pill section header */
+  .section-heading {
+    display: inline-block;
+    font-family: var(--font-brand); font-weight: 800; font-size: 11.5px;
+    color: #fff; background: var(--navy);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    padding: 9px 20px; border-radius: 999px;
     margin-bottom: 16px;
   }
-
-  /* ── KPI GRID ─────────────────────────────────────────── */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
+  .sub-heading {
+    font-family: var(--font-brand); font-weight: 700; font-size: 11px;
+    color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1.5px solid var(--navy);
+    padding-bottom: 6px;
+    margin: 22px 0 12px;
   }
+
+  /* ══ KPI CARDS ══ */
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
   .kpi-card {
-    background: #f8f9fc;
-    border: 1px solid #e8ecf0;
-    border-radius: 10px;
-    padding: 14px 16px;
-    text-align: center;
-    border-top: 3px solid #0f3460;
+    background: var(--panel); border: 1px solid var(--border);
+    border-top: 4px solid var(--navy);
+    border-radius: 6px; padding: 12px 14px; text-align: center;
   }
-  .kpi-card.accent-red   { border-top-color: #e94560; }
-  .kpi-card.accent-gold  { border-top-color: #f5a623; }
-  .kpi-card.accent-teal  { border-top-color: #00b4d8; }
-  .kpi-card.accent-green { border-top-color: #2ed573; }
-  .kpi-label { font-size: 10px; color: #7f8c9a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .kpi-value { font-size: 22px; font-weight: 700; color: #1a1a2e; line-height: 1.1; }
-  .kpi-sub   { font-size: 10px; color: #aab2bd; margin-top: 2px; }
+  .kpi-card.accent-green { border-top-color: var(--green); }
+  .kpi-card.accent-red   { border-top-color: var(--red); }
+  .kpi-card.accent-amber { border-top-color: var(--amber); }
+  .kpi-card.accent-blue  { border-top-color: var(--blue); }
+  .kpi-label { font-family: var(--font-brand); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey); margin-bottom: 4px; }
+  .kpi-value { font-family: var(--font-brand); font-size: 19px; font-weight: 800; color: var(--navy); line-height: 1.1; }
+  .kpi-sub   { font-family: var(--font-brand); font-size: 9px; color: var(--grey); margin-top: 2px; }
 
-  /* ── GRADE BADGE ──────────────────────────────────────── */
-  .grade-badge {
-    display: inline-block;
-    width: 36px; height: 36px; line-height: 36px;
-    border-radius: 50%; text-align: center;
-    font-size: 15px; font-weight: 800;
-  }
+  /* ══ PERFORMANCE HEALTH BAR (mirrors client Payment Health) ══ */
+  .performance-health { margin-bottom: 18px; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; background: var(--panel); }
+  .performance-health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+  .performance-health-title { font-family: var(--font-brand); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--navy); }
+  .grade-badge { display: inline-block; width: 28px; height: 28px; line-height: 28px; border-radius: 50%; text-align: center; font-family: var(--font-brand); font-size: 13px; font-weight: 800; }
   .grade-A { background: #d4edda; color: #155724; }
   .grade-B { background: #d1ecf1; color: #0c5460; }
   .grade-C { background: #fff3cd; color: #856404; }
   .grade-D { background: #f8d7da; color: #721c24; }
+  .health-bar-bg { height: 10px; background: var(--blue-pale); border-radius: 5px; overflow: hidden; }
+  .health-bar-fill { height: 100%; border-radius: 5px; }
+  .health-bar-fill.grade-A-fill { background: var(--green); }
+  .health-bar-fill.grade-B-fill { background: #0c5460; }
+  .health-bar-fill.grade-C-fill { background: var(--amber); }
+  .health-bar-fill.grade-D-fill { background: var(--red); }
+  .health-bar-labels { display: flex; justify-content: space-between; margin-top: 5px; }
+  .health-bar-labels span { font-family: var(--font-brand); font-size: 9px; color: var(--grey); }
 
-  /* ── SCORE RADAR / DIM TABLE ──────────────────────────── */
-  .dim-table { width: 100%; border-collapse: collapse; }
+  /* ══ SCORE DIMENSION TABLE ══ */
+  .dim-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
   .dim-table th, .dim-table td {
     padding: 9px 12px; text-align: left;
-    border-bottom: 1px solid #eef0f4;
+    border-bottom: 1px solid var(--border);
     font-size: 12px;
   }
   .dim-table th {
-    background: #f4f6f9; font-weight: 600;
-    color: #4a5568; text-transform: uppercase;
-    font-size: 10px; letter-spacing: 0.5px;
+    background: var(--navy); color: #fff; font-weight: 700;
+    text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;
   }
   .dim-table tr:last-child td { border-bottom: none; }
-  .dim-table tr:hover td { background: #fafbfc; }
-
+  .dim-table tr:nth-child(even) td { background: #FBFAF6; }
   .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
-  .score-bar-bg {
-    flex: 1; height: 7px; background: #eef0f4; border-radius: 4px; overflow: hidden;
-  }
-  .score-bar-fill {
-    height: 100%; border-radius: 4px;
-    background: #0f3460;
-    transition: width 0.3s ease;
-  }
-  .score-bar-fill.high  { background: #27ae60; }
-  .score-bar-fill.mid   { background: #f39c12; }
-  .score-bar-fill.low   { background: #c0392b; }
-  .score-num { font-size: 12px; font-weight: 700; color: #1a1a2e; width: 28px; text-align: right; }
+  .score-bar-bg { flex: 1; height: 7px; background: var(--blue-pale); border-radius: 4px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 4px; background: var(--navy); }
+  .score-bar-fill.high { background: var(--green); }
+  .score-bar-fill.mid  { background: var(--amber); }
+  .score-bar-fill.low  { background: var(--red); }
+  .score-num { font-family: var(--font-brand); font-size: 12px; font-weight: 700; color: var(--navy); width: 28px; text-align: right; }
 
-  /* ── MONTHLY REVIEW CARDS ─────────────────────────────── */
-  .review-cards { display: flex; gap: 12px; flex-wrap: wrap; }
-  .review-card {
-    flex: 1; min-width: 200px;
-    background: #f8f9fc;
-    border: 1px solid #e8ecf0;
-    border-radius: 10px;
-    padding: 16px;
-  }
-  .review-card-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px;
-  }
-  .review-month { font-weight: 700; font-size: 13px; color: #0f3460; }
-  .review-reviewer { font-size: 10px; color: #aab2bd; margin-bottom: 8px; }
-  .review-feedback { font-size: 11px; line-height: 1.5; }
-  .review-feedback .label { font-weight: 600; color: #4a5568; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
-  .review-feedback .text-green { color: #27ae60; }
-  .review-feedback .text-orange { color: #e67e22; }
+  /* ══ PROFILE GRID ══ */
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .profile-cell { padding: 9px 14px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  .profile-cell:nth-child(odd) { background: var(--blue-pale); }
+  .profile-cell-label { font-family: var(--font-brand); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey); }
+  .profile-cell-value { font-family: var(--font-brand); font-size: 11px; font-weight: 600; color: var(--navy); margin-top: 2px; }
 
-  /* ── DATA TABLE ───────────────────────────────────────── */
-  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  /* ══ DATA TABLE ══ */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 18px; }
   .data-table th {
-    background: #0f3460; color: #fff;
-    padding: 9px 12px; text-align: left;
-    font-size: 10px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--navy); font-family: var(--font-brand);
+    font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.3px;
+    color: #fff; padding: 9px 8px; text-align: center; border: 1px solid var(--navy-2);
   }
   .data-table td {
-    padding: 9px 12px;
-    border-bottom: 1px solid #eef0f4;
-    vertical-align: top;
+    font-family: var(--font-brand); border: 1px solid var(--border);
+    padding: 7px 8px; text-align: center; color: #333; font-size: 10px;
+    background: var(--panel);
   }
-  .data-table tr:last-child td { border-bottom: none; }
-  .data-table tr:nth-child(even) td { background: #fafbfc; }
-  .data-table tr:hover td { background: #f0f4ff; }
+  .data-table td:first-child { text-align: left; font-weight: 600; }
+  .data-table tr:last-child td { font-weight: 700; background: var(--blue-pale); }
+  .data-table tr:nth-child(even):not(:last-child) td { background: #FBFAF6; }
 
-  /* ── BADGES ───────────────────────────────────────────── */
-  .badge {
-    display: inline-block;
-    padding: 2px 8px; border-radius: 12px;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
-  }
-  .badge-green   { background: #d4edda; color: #155724; }
-  .badge-yellow  { background: #fff3cd; color: #856404; }
-  .badge-red     { background: #f8d7da; color: #721c24; }
-  .badge-blue    { background: #cce5ff; color: #004085; }
-  .badge-purple  { background: #e2d9f3; color: #4a1d8c; }
-  .badge-gray    { background: #e9ecef; color: #495057; }
+  /* ══ HORIZONTAL BAR CHART ══ */
+  .h-bar-chart { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+  .h-bar-row { display: flex; align-items: center; gap: 10px; }
+  .h-bar-label { font-family: var(--font-brand); font-size: 10px; font-weight: 600; color: var(--navy); width: 120px; flex-shrink: 0; text-align: right; }
+  .h-bar-track { flex: 1; height: 26px; background: var(--blue-pale); border-radius: 3px; overflow: hidden; }
+  .h-bar-fill { height: 100%; background: var(--blue); border-radius: 3px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+  .h-bar-num { font-family: var(--font-brand); font-weight: 800; font-size: 10px; color: var(--navy); }
 
-  /* ── TREND INDICATOR ──────────────────────────────────── */
-  .trend-up   { color: #27ae60; }
-  .trend-down { color: #e94560; }
-  .trend-flat { color: #aab2bd; }
+  /* ══ MONTHLY REVIEW CARDS ══ */
+  .review-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .review-card { flex: 1; min-width: 200px; background: var(--panel); border: 1px solid var(--border); border-top: 3px solid var(--navy); border-radius: 8px; padding: 16px; }
+  .review-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .review-month { font-family: var(--font-brand); font-weight: 700; font-size: 13px; color: var(--navy); }
+  .review-reviewer { font-family: var(--font-brand); font-size: 10px; color: var(--grey); margin-bottom: 8px; }
+  .review-feedback { font-family: var(--font-brand); font-size: 11px; line-height: 1.5; }
+  .review-feedback .label { font-weight: 700; color: var(--navy); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .review-feedback .text-green  { color: var(--green); }
+  .review-feedback .text-orange { color: var(--amber); }
 
-  /* ── EMPTY STATE ──────────────────────────────────────── */
+  /* ══ BADGES ══ */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-family: var(--font-brand); font-size: 9px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+  .badge-green  { background: #d4edda; color: #155724; }
+  .badge-yellow { background: #fff3cd; color: #856404; }
+  .badge-red    { background: #f8d7da; color: #721c24; }
+  .badge-blue   { background: var(--blue-pale); color: var(--navy); }
+  .badge-purple { background: #e2d9f3; color: #4a1d8c; }
+  .badge-gray   { background: #e9ecef; color: #495057; }
+
+  .trend-up   { color: var(--green); }
+  .trend-down { color: var(--red); }
+  .trend-flat { color: var(--grey); }
+
+  .section-break { page-break-before: always; }
   .empty-state {
-    text-align: center; padding: 24px;
-    color: #aab2bd; font-size: 12px;
-    background: #fafbfc; border-radius: 8px;
-    border: 1px dashed #dde1e7;
+    text-align: center; padding: 22px;
+    font-family: var(--font-brand); color: var(--grey); font-size: 12px;
+    background: var(--panel); border-radius: 8px;
+    border: 1px dashed var(--border); margin-bottom: 16px;
   }
 
-  /* ── FOOTER ───────────────────────────────────────────── */
+  /* ══ FOOTER ══ */
   .report-footer {
-    border-top: 1px solid #eef0f4;
-    padding: 16px 40px;
-    display: flex; align-items: center; justify-content: space-between;
+    background: var(--cream);
+    border-top: 1px solid var(--border);
+    padding: 14px var(--pad-x) 20px;
+    text-align: center;
   }
-  .footer-img img { height: 30px; object-fit: contain; opacity: 0.6; }
-  .footer-text { font-size: 10px; color: #aab2bd; text-align: right; line-height: 1.6; }
-
-  /* ══════════════════════════════════════════════════════════
-     NATIVE PRINT / DOWNLOAD-AS-PDF SETUP
-     The "Download PDF" button simply calls window.print(). The
-     browser's print dialog (with "Save as PDF" as the destination)
-     produces the PDF — no server-side conversion needed.
-  ══════════════════════════════════════════════════════════ */
-  @page :first { size: A4 portrait; margin: 16mm 12mm 14mm 12mm; }
-  @page         { size: A4 portrait; margin: 16mm 12mm 14mm 12mm; }
-
-  /* ── BROWSER-ONLY TOOLBAR (hidden in print) ── */
-  .preview-toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 2000;
-    background: #1a1a2e;
-    padding: 10px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .preview-toolbar-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .btn-download {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: #b71c1c;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    border: none;
-    border-radius: 7px;
-    padding: 9px 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-download:hover {
-    background: #e94560;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(233,69,96,0.3);
-  }
-
-  /* ── PRINT-ONLY FIXED HEADER (repeats on every printed page) ── */
-  .print-header { display: none; }
-  @media print {
-    .print-header {
-      display: block;
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 9mm;
-      background: #fff;
-      z-index: 600;
-    }
-    .print-header-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 100%;
-      padding: 0 12mm;
-      border-bottom: 1px solid #0f3460;
-    }
-    .print-header-inner span {
-      font-size: 7pt;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #1a1a2e;
-    }
-  }
-
-  /* ── PRINT-ONLY FIXED FOOTER (repeats on every printed page) ── */
-  .print-footer { display: none; }
-  @media print {
-    .print-footer {
-      display: block;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: #fff;
-      text-align: center;
-      z-index: 500;
-      padding: 2px 0;
-    }
-    .print-footer img { max-height: 9mm; display: inline-block; opacity: 0.7; }
-  }
-
-  /* ── PRINT OVERRIDES ── */
-  @media print {
-    .preview-toolbar { display: none !important; }
-    .page { box-shadow: none !important; max-width: none !important; }
-    body { background: #fff; }
-
-    .data-table, .dim-table { page-break-inside: auto; }
-    .data-table tr, .dim-table tr { page-break-inside: avoid; page-break-after: auto; }
-    .data-table thead, .dim-table thead { display: table-header-group; }
-    .kpi-grid, .review-cards { page-break-inside: avoid; }
-    .section { page-break-inside: avoid; }
-
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+  .report-footer img { max-height: 26px; opacity: 0.75; margin-bottom: 6px; }
+  .report-footer p { font-family: var(--font-brand); font-size: 9px; color: var(--grey); letter-spacing: 0.3px; }
 </style>
 </head>
 
 <body>
 <?
-  var d     = reportData;
-  var p     = d.profile;
-  var sa    = d.scoreAgg;
-  var isW   = d.employeeType === "Worker";
+  var d   = reportData;
+  var p   = d.profile;
+  var sa  = d.scoreAgg;
+  var isW = d.employeeType === "Worker";
 
-  // Avatar initials
   var names    = p.fullName.split(" ");
   var initials = names.map(function(n){ return n[0]; }).slice(0,2).join("").toUpperCase();
 
-  // Grade colour
   function gradeClass(g) { return "grade-" + (g || "D").replace(/[^A-D]/g,"D"); }
-
-  // Bar colour class
   function barClass(score) {
     if (score >= 8) return "high";
     if (score >= 6) return "mid";
     return "low";
   }
-
-  // Month display
   function prettyMonth(ym) {
     var parts = ym.split("-");
     var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return months[parseInt(parts[1])-1] + " " + parts[0];
   }
-
-  // Dimension labels
   var dimLabels = {
     punctuality   : "Punctuality",
     attendance    : "Attendance",
@@ -419,30 +356,24 @@
     efficiency    : "Efficiency",
     coordination  : "Coordination"
   };
-
-  // Trend icon
   var trendIcon = sa && sa.trend === "improving" ? "▲" :
                   sa && sa.trend === "declining"  ? "▼" : "→";
   var trendCls  = sa && sa.trend === "improving" ? "trend-up" :
                   sa && sa.trend === "declining"  ? "trend-down" : "trend-flat";
 ?>
 
-<!-- ══════════════════════════════════════════
-     BROWSER-ONLY TOOLBAR (hidden in print)
-══════════════════════════════════════════ -->
+<!-- ══ BROWSER TOOLBAR ══ -->
 <div class="preview-toolbar">
   <span class="preview-toolbar-title">Fako Mart — <?= d.month ?> <?= d.year ?> Employee Performance Report</span>
   <button class="btn-download" onclick="window.print()">
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
       <path d="M6.5 1v8M3.5 6.5l3 3 3-3M1 10.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     Download PDF
   </button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     PRINT-ONLY FIXED HEADER (repeats on every printed page)
-══════════════════════════════════════════ -->
+<!-- ══ PRINT-ONLY HEADER ══ -->
 <div class="print-header">
   <div class="print-header-inner">
     <span>Fako Mart</span>
@@ -450,371 +381,410 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     PRINT-ONLY FIXED FOOTER (repeats on every printed page)
-══════════════════════════════════════════ -->
+<!-- ══ PRINT-ONLY FOOTER ══ -->
 <div class="print-footer">
   <img src="<?= footerUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
 </div>
 
-<!-- ═══ HEADER ═════════════════════════════════════════════ -->
-<div class="report-header">
-  <div class="header-top">
-    <div class="header-logo">
-      <img src="<?= logoUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
-    </div>
-    <div class="header-meta">
-      <div><strong>Report Type:</strong> Employee Performance</div>
-      <div><strong>Period:</strong> <?= d.month ?> <?= d.year ?></div>
-      <div><strong>Generated:</strong> <?= d.reportDate ?></div>
-      <div><strong>ID:</strong> <?= p.id ?></div>
-    </div>
-  </div>
-  <div class="report-title">Employee Performance Report</div>
-  <div class="report-subtitle">Fako Mart · <?= d.month ?> <?= d.year ?> · <?= d.employeeType ?> Assessment</div>
-</div>
+<!-- ══ REPORT WRAPPER ══ -->
+<div class="report-wrapper">
 
-<!-- ═══ PROFILE CARD ════════════════════════════════════════ -->
-<div class="profile-card">
-  <div class="profile-avatar"><?= initials ?></div>
-  <div class="profile-info">
-    <div class="profile-name"><?= p.fullName ?></div>
-    <div class="profile-role"><?= p.position ?> · <?= p.department ?></div>
-    <div class="profile-tags">
-      <span class="profile-tag <?= p.status === 'Active' ? 'active' : 'inactive' ?>"><?= p.status ?></span>
-      <span class="profile-tag"><?= d.employeeType ?></span>
-      <? if (p.gender) { ?><span class="profile-tag"><?= p.gender ?></span><? } ?>
-      <span class="profile-tag">Since <?= p.dateHired ?></span>
-      <? if (p.reportsTo) { ?><span class="profile-tag">Reports to <?= p.reportsTo ?></span><? } ?>
-    </div>
-  </div>
-  <div class="profile-stats">
-    <div class="stat-chip">
-      <div class="sc-label">Base Salary</div>
-      <div class="sc-value"><?= (p.baseSalary || 0).toLocaleString() ?></div>
-      <div class="sc-label">XAF / month</div>
-    </div>
-    <? if (sa) { ?>
-    <div class="stat-chip">
-      <div class="sc-label">Avg Score</div>
-      <div class="sc-value"><?= sa.avgOverall ?>/10</div>
-      <div class="sc-label">Grade <?= sa.avgGrade ?> · <span class="<?= trendCls ?>"><?= trendIcon ?> <?= sa.trend ?></span></div>
-    </div>
-    <? } ?>
-  </div>
-</div>
+  <!-- ═══════════════════════════════════
+       PAGE 1 — COVER: Profile + KPIs + Score Breakdown
+  ════════════════════════════════════ -->
+  <div class="section-cover">
 
-<!-- ═══ CONTENT ══════════════════════════════════════════════ -->
-<div class="content">
-
-<!-- ── KPI STRIP ──────────────────────────────────────────── -->
-<div class="section">
-  <div class="section-title">Performance Snapshot · <?= d.month ?> <?= d.year ?></div>
-  <div class="kpi-grid">
-
-    <div class="kpi-card accent-teal">
-      <div class="kpi-label">Avg Score</div>
-      <div class="kpi-value"><?= sa ? sa.avgOverall : "—" ?></div>
-      <div class="kpi-sub">out of 10.0</div>
-    </div>
-
-    <div class="kpi-card accent-gold">
-      <div class="kpi-label">Grade</div>
-      <div class="kpi-value">
-        <span class="grade-badge <?= sa ? gradeClass(sa.avgGrade) : "grade-D" ?>"><?= sa ? sa.avgGrade : "—" ?></span>
+    <div class="cover-header">
+      <div class="cover-top-row">
+        <div class="logo-block">
+          <img src="<?= logoUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+        </div>
       </div>
-      <div class="kpi-sub"><?= sa && sa.avgGrade === "A" ? "Outstanding" : sa && sa.avgGrade === "B" ? "Good" : sa && sa.avgGrade === "C" ? "Satisfactory" : "Needs Improvement" ?></div>
+      <div class="cover-headline">Employee Performance Report</div>
+      <div class="cover-subline">Performance review for <?= p.fullName ?>, covering scores, reviews, bonuses<?= isW ? ', sales activity' : '' ?> and errands for <?= d.month ?>, <?= d.year ?>.</div>
+      <div class="header-rule"></div>
     </div>
 
-    <div class="kpi-card accent-green">
-      <div class="kpi-label">Bonus Earned</div>
-      <div class="kpi-value"><?= (d.totalBonus || 0).toLocaleString() ?></div>
-      <div class="kpi-sub">XAF · <?= d.bonuses.length ?> award<?= d.bonuses.length !== 1 ? "s" : "" ?></div>
+    <div class="hero-band">
+      <div class="hero-avatar"><?= initials ?></div>
+      <div class="hero-info">
+        <div class="hero-client"><?= p.fullName ?></div>
+        <div class="hero-sub"><?= p.position ?> · <?= p.department ?></div>
+        <div class="hero-tags">
+          <span class="hero-tag <?= p.status === 'Active' ? 'active' : 'inactive' ?>"><?= p.status ?></span>
+          <span class="hero-tag"><?= d.employeeType ?></span>
+          <? if (p.gender) { ?><span class="hero-tag"><?= p.gender ?></span><? } ?>
+          <span class="hero-tag">Since <?= p.dateHired ?></span>
+          <? if (p.reportsTo) { ?><span class="hero-tag">Reports to <?= p.reportsTo ?></span><? } ?>
+        </div>
+      </div>
     </div>
 
-    <div class="kpi-card accent-red">
-      <div class="kpi-label">Errands Run</div>
-      <div class="kpi-value"><?= d.errands.length ?></div>
-      <div class="kpi-sub">this period</div>
-    </div>
+    <div class="content">
 
+      <div class="section-heading">Performance Snapshot</div>
+      <div class="kpi-row">
+        <div class="kpi-card accent-blue">
+          <div class="kpi-label">Avg Score</div>
+          <div class="kpi-value"><?= sa ? sa.avgOverall : "—" ?></div>
+          <div class="kpi-sub">out of 10.0</div>
+        </div>
+        <div class="kpi-card <?= sa && sa.avgGrade === 'A' ? 'accent-green' : sa && sa.avgGrade === 'D' ? 'accent-red' : 'accent-amber' ?>">
+          <div class="kpi-label">Grade</div>
+          <div class="kpi-value"><span class="grade-badge <?= sa ? gradeClass(sa.avgGrade) : 'grade-D' ?>"><?= sa ? sa.avgGrade : "—" ?></span></div>
+          <div class="kpi-sub"><?= sa && sa.avgGrade === "A" ? "Outstanding" : sa && sa.avgGrade === "B" ? "Good" : sa && sa.avgGrade === "C" ? "Satisfactory" : "Needs Improvement" ?></div>
+        </div>
+        <div class="kpi-card accent-green">
+          <div class="kpi-label">Bonus Earned</div>
+          <div class="kpi-value"><?= (d.totalBonus || 0).toLocaleString() ?></div>
+          <div class="kpi-sub">XAF · <?= d.bonuses.length ?> award<?= d.bonuses.length !== 1 ? "s" : "" ?></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Errands Run</div>
+          <div class="kpi-value"><?= d.errands.length ?></div>
+          <div class="kpi-sub">this period</div>
+        </div>
+      </div>
+
+      <? if (isW && d.sales) { ?>
+      <div class="kpi-row">
+        <div class="kpi-card accent-blue">
+          <div class="kpi-label">Sales Transactions</div>
+          <div class="kpi-value"><?= d.sales.transactions ?></div>
+          <div class="kpi-sub">served personally</div>
+        </div>
+        <div class="kpi-card accent-blue">
+          <div class="kpi-label">Revenue Generated</div>
+          <div class="kpi-value"><?= (d.sales.totalRevenue || 0).toLocaleString() ?></div>
+          <div class="kpi-sub">XAF total</div>
+        </div>
+        <div class="kpi-card accent-blue">
+          <div class="kpi-label">Avg per Sale</div>
+          <div class="kpi-value"><?= (d.sales.avgPerSale || 0).toLocaleString() ?></div>
+          <div class="kpi-sub">XAF</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Incidents Reported</div>
+          <div class="kpi-value"><?= d.incidents.length ?></div>
+          <div class="kpi-sub">logged this period</div>
+        </div>
+      </div>
+      <? } ?>
+
+      <!-- PERFORMANCE HEALTH BAR -->
+      <? if (sa) { ?>
+      <div class="performance-health">
+        <div class="performance-health-header">
+          <span class="performance-health-title">Performance Health</span>
+          <span class="grade-badge <?= gradeClass(sa.avgGrade) ?>"><?= sa.avgGrade ?></span>
+        </div>
+        <div class="health-bar-bg">
+          <div class="health-bar-fill <?= gradeClass(sa.avgGrade) ?>-fill" style="width:<?= (sa.avgOverall/10*100) ?>%"></div>
+        </div>
+        <div class="health-bar-labels">
+          <span><?= sa.avgOverall ?> / 10 average</span>
+          <span><span class="<?= trendCls ?>"><?= trendIcon ?> <?= sa.trend ?></span></span>
+          <span>Grade <?= sa.avgGrade ?></span>
+        </div>
+      </div>
+
+      <div class="sub-heading">Score Breakdown by Dimension</div>
+      <table class="dim-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Average Score</th>
+            <th>Visual</th>
+            <th>Grade</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? Object.keys(sa.dimAvg).forEach(function(k) {
+            var score = sa.dimAvg[k];
+            var pct   = score ? (score / 10 * 100).toFixed(0) : 0;
+            var cls   = barClass(score);
+          ?>
+          <tr>
+            <td style="font-weight:600"><?= dimLabels[k] || k ?></td>
+            <td><strong><?= score !== null ? score : "—" ?></strong><span style="color:var(--grey)"> / 10</span></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar-bg"><div class="score-bar-fill <?= cls ?>" style="width:<?= pct ?>%"></div></div>
+                <span class="score-num"><?= pct ?>%</span>
+              </div>
+            </td>
+            <td><span class="grade-badge <?= gradeClass(score >= 8 ? 'A' : score >= 6 ? 'B' : score >= 4 ? 'C' : 'D') ?>">
+              <?= score !== null ? (score >= 8 ? "A" : score >= 6 ? "B" : score >= 4 ? "C" : "D") : "—" ?>
+            </span></td>
+          </tr>
+          <? }); ?>
+        </tbody>
+      </table>
+      <? } ?>
+
+      <!-- PROFILE -->
+      <div class="sub-heading">Employee Profile</div>
+      <div class="profile-grid">
+        <div class="profile-cell">
+          <div class="profile-cell-label">Employee ID</div>
+          <div class="profile-cell-value"><?= p.id ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Status</div>
+          <div class="profile-cell-value"><?= p.status ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Position</div>
+          <div class="profile-cell-value"><?= p.position ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Department</div>
+          <div class="profile-cell-value"><?= p.department ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Date Hired</div>
+          <div class="profile-cell-value"><?= p.dateHired ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Base Salary</div>
+          <div class="profile-cell-value"><?= (p.baseSalary || 0).toLocaleString() ?> XAF / month</div>
+        </div>
+        <? if (p.gender) { ?>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Gender</div>
+          <div class="profile-cell-value"><?= p.gender ?></div>
+        </div>
+        <? } ?>
+        <? if (p.reportsTo) { ?>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Reports To</div>
+          <div class="profile-cell-value"><?= p.reportsTo ?></div>
+        </div>
+        <? } ?>
+      </div>
+
+    </div>
   </div>
 
-  <? if (isW && d.sales) { ?>
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-label">Sales Transactions</div>
-      <div class="kpi-value"><?= d.sales.transactions ?></div>
-      <div class="kpi-sub">served personally</div>
-    </div>
-    <div class="kpi-card accent-teal">
-      <div class="kpi-label">Revenue Generated</div>
-      <div class="kpi-value"><?= (d.sales.totalRevenue || 0).toLocaleString() ?></div>
-      <div class="kpi-sub">XAF total</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Avg per Sale</div>
-      <div class="kpi-value"><?= (d.sales.avgPerSale || 0).toLocaleString() ?></div>
-      <div class="kpi-sub">XAF</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Incidents Reported</div>
-      <div class="kpi-value"><?= d.incidents.length ?></div>
-      <div class="kpi-sub">logged this period</div>
-    </div>
-  </div>
-  <? } ?>
-</div>
 
-<!-- ── SCORE BREAKDOWN ────────────────────────────────────── -->
-<? if (sa) { ?>
-<div class="section">
-  <div class="section-title">Score Breakdown by Dimension</div>
-  <table class="dim-table">
-    <thead>
-      <tr>
-        <th>Dimension</th>
-        <th>Average Score</th>
-        <th>Visual</th>
-        <th>Grade</th>
-      </tr>
-    </thead>
-    <tbody>
-      <? Object.keys(sa.dimAvg).forEach(function(k) {
-        var score = sa.dimAvg[k];
-        var pct   = score ? (score / 10 * 100).toFixed(0) : 0;
-        var cls   = barClass(score);
-      ?>
-      <tr>
-        <td style="font-weight:600"><?= dimLabels[k] || k ?></td>
-        <td><strong><?= score !== null ? score : "—" ?></strong><span style="color:#aab2bd"> / 10</span></td>
-        <td>
-          <div class="score-bar-wrap">
-            <div class="score-bar-bg">
-              <div class="score-bar-fill <?= cls ?>" style="width:<?= pct ?>%"></div>
+  <!-- ═══════════════════════════════════
+       PAGE 2 — MONTHLY REVIEWS + BONUSES
+  ════════════════════════════════════ -->
+  <div class="section-reviews section-break">
+
+    <div class="slim-header">
+      <div class="slim-header-top">
+        <span class="slim-header-company">Fako Mart</span>
+        <span class="slim-header-period"><?= d.month ?>, <?= d.year ?> Employee Performance Report</span>
+      </div>
+      <div class="slim-header-rule"></div>
+    </div>
+
+    <div class="content">
+
+      <div class="section-heading">Monthly Review Detail</div>
+      <? if (d.reviews.length) { ?>
+      <div class="review-cards">
+        <? d.reviews.forEach(function(rv) { ?>
+        <div class="review-card">
+          <div class="review-card-header">
+            <span class="review-month"><?= prettyMonth(rv.month) ?></span>
+            <span class="grade-badge <?= gradeClass(rv.grade) ?>"><?= rv.grade ?></span>
+          </div>
+          <div class="review-reviewer">Reviewed by: <?= rv.reviewedBy || "—" ?></div>
+          <div style="margin-bottom:8px">
+            <? Object.keys(rv.dims).forEach(function(k) {
+              var sc = rv.dims[k];
+              var pct = sc ? (sc/10*100).toFixed(0) : 0;
+            ?>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span style="font-family:var(--font-brand);font-size:10px;color:var(--grey);width:85px;flex-shrink:0"><?= dimLabels[k] || k ?></span>
+              <div class="score-bar-bg" style="flex:1">
+                <div class="score-bar-fill <?= barClass(sc) ?>" style="width:<?= pct ?>%"></div>
+              </div>
+              <span style="font-family:var(--font-brand);font-size:10px;font-weight:700;width:22px;text-align:right"><?= sc || "—" ?></span>
             </div>
-            <span class="score-num"><?= pct ?>%</span>
+            <? }); ?>
           </div>
-        </td>
-        <td><span class="grade-badge <?= gradeClass(fmGrade !== undefined ? (score >= 8 ? 'A' : score >= 6 ? 'B' : score >= 4 ? 'C' : 'D') : 'D') ?>">
-          <?= score !== null ? (score >= 8 ? "A" : score >= 6 ? "B" : score >= 4 ? "C" : "D") : "—" ?>
-        </span></td>
-      </tr>
-      <? }); ?>
-    </tbody>
-  </table>
-</div>
-<? } ?>
-
-<!-- ── MONTHLY REVIEW CARDS ───────────────────────────────── -->
-<div class="section">
-  <div class="section-title">Monthly Review Detail</div>
-  <? if (d.reviews.length) { ?>
-  <div class="review-cards">
-    <? d.reviews.forEach(function(rv) { ?>
-    <div class="review-card">
-      <div class="review-card-header">
-        <span class="review-month"><?= prettyMonth(rv.month) ?></span>
-        <span class="grade-badge <?= gradeClass(rv.grade) ?>"><?= rv.grade ?></span>
-      </div>
-      <div class="review-reviewer">Reviewed by: <?= rv.reviewedBy || "—" ?></div>
-      <div style="margin-bottom:8px">
-        <? Object.keys(rv.dims).forEach(function(k) {
-          var sc = rv.dims[k];
-          var pct = sc ? (sc/10*100).toFixed(0) : 0;
-        ?>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-          <span style="font-size:10px;color:#7f8c9a;width:85px;flex-shrink:0"><?= dimLabels[k] || k ?></span>
-          <div class="score-bar-bg" style="flex:1">
-            <div class="score-bar-fill <?= barClass(sc) ?>" style="width:<?= pct ?>%"></div>
+          <div class="review-feedback">
+            <? if (rv.strengths) { ?>
+            <div class="label">✓ Strengths</div>
+            <div class="text-green" style="margin-bottom:5px"><?= rv.strengths ?></div>
+            <? } ?>
+            <? if (rv.improvements) { ?>
+            <div class="label">↑ Improve</div>
+            <div class="text-orange"><?= rv.improvements ?></div>
+            <? } ?>
           </div>
-          <span style="font-size:10px;font-weight:700;width:22px;text-align:right"><?= sc || "—" ?></span>
+          <div style="margin-top:8px">
+            <span class="badge <?= rv.status === 'Submitted' ? 'badge-green' : 'badge-yellow' ?>"><?= rv.status ?></span>
+          </div>
         </div>
         <? }); ?>
       </div>
-      <div class="review-feedback">
-        <? if (rv.strengths) { ?>
-        <div class="label">✓ Strengths</div>
-        <div class="text-green" style="margin-bottom:5px"><?= rv.strengths ?></div>
-        <? } ?>
-        <? if (rv.improvements) { ?>
-        <div class="label">↑ Improve</div>
-        <div class="text-orange"><?= rv.improvements ?></div>
-        <? } ?>
-      </div>
-      <div style="margin-top:8px">
-        <span class="badge <?= rv.status === 'Submitted' ? 'badge-green' : 'badge-yellow' ?>"><?= rv.status ?></span>
-      </div>
+      <? } else { ?>
+      <div class="empty-state">No reviews recorded for this period.</div>
+      <? } ?>
+
+      <div class="section-heading">Bonus Awards</div>
+      <? if (d.bonuses.length) { ?>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Type</th>
+            <th>Amount (XAF)</th>
+            <th>Approved By</th>
+            <th style="text-align:left">Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? d.bonuses.forEach(function(b) { ?>
+          <tr>
+            <td><?= prettyMonth(b.month) ?></td>
+            <td>
+              <span class="badge <?= b.type === 'Performance' ? 'badge-blue' : b.type === 'Sales Target' ? 'badge-green' : 'badge-purple' ?>">
+                <?= b.type ?>
+              </span>
+            </td>
+            <td style="font-weight:700;color:var(--navy)"><?= (b.amount || 0).toLocaleString() ?></td>
+            <td><?= b.approvedBy ?></td>
+            <td style="text-align:left;font-size:9px"><?= b.reason ?></td>
+          </tr>
+          <? }); ?>
+          <tr>
+            <td>Total</td><td></td>
+            <td><?= (d.totalBonus || 0).toLocaleString() ?></td>
+            <td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+      <? } else { ?>
+      <div class="empty-state">No bonus awards recorded for this period.</div>
+      <? } ?>
+
     </div>
-    <? }); ?>
   </div>
-  <? } else { ?>
-  <div class="empty-state">No reviews recorded for this period.</div>
-  <? } ?>
-</div>
 
-<!-- ── BONUSES ────────────────────────────────────────────── -->
-<div class="section">
-  <div class="section-title">Bonus Awards</div>
-  <? if (d.bonuses.length) { ?>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Month</th>
-        <th>Type</th>
-        <th>Amount (XAF)</th>
-        <th>Approved By</th>
-        <th>Reason</th>
-      </tr>
-    </thead>
-    <tbody>
-      <? d.bonuses.forEach(function(b) { ?>
-      <tr>
-        <td><?= prettyMonth(b.month) ?></td>
-        <td>
-          <span class="badge <?= b.type === 'Performance' ? 'badge-blue' : b.type === 'Sales Target' ? 'badge-green' : 'badge-purple' ?>">
-            <?= b.type ?>
-          </span>
-        </td>
-        <td style="font-weight:700;color:#0f3460"><?= (b.amount || 0).toLocaleString() ?></td>
-        <td><?= b.approvedBy ?></td>
-        <td><?= b.reason ?></td>
-      </tr>
-      <? }); ?>
-    </tbody>
-  </table>
-  <div style="margin-top:10px;text-align:right;font-size:12px;color:#0f3460">
-    <strong>Total Bonuses: <?= (d.totalBonus || 0).toLocaleString() ?> XAF</strong>
-  </div>
-  <? } else { ?>
-  <div class="empty-state">No bonus awards recorded for this period.</div>
-  <? } ?>
-</div>
 
-<!-- ── SALES BY CATEGORY (Workers only) ──────────────────── -->
-<? if (isW && d.sales && d.sales.transactions > 0) { ?>
-<div class="section">
-  <div class="section-title">Sales Activity by Category</div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Category</th>
-        <th>Revenue (XAF)</th>
-        <th>Share</th>
-      </tr>
-    </thead>
-    <tbody>
+  <!-- ═══════════════════════════════════
+       PAGE 3 — SALES + ERRANDS + INCIDENTS
+  ════════════════════════════════════ -->
+  <div class="section-activity section-break">
+
+    <div class="slim-header">
+      <div class="slim-header-top">
+        <span class="slim-header-company">Fako Mart</span>
+        <span class="slim-header-period"><?= d.month ?>, <?= d.year ?> Employee Performance Report</span>
+      </div>
+      <div class="slim-header-rule"></div>
+    </div>
+
+    <div class="content">
+
+      <? if (isW && d.sales && d.sales.transactions > 0) { ?>
+      <div class="section-heading">Sales Activity by Category</div>
       <? var cats = Object.keys(d.sales.byCategory).sort(function(a,b){ return d.sales.byCategory[b]-d.sales.byCategory[a]; });
-         cats.forEach(function(cat) {
-           var rev  = d.sales.byCategory[cat];
-           var pct  = d.sales.totalRevenue ? (rev/d.sales.totalRevenue*100).toFixed(1) : 0;
-      ?>
-      <tr>
-        <td style="font-weight:600"><?= cat ?></td>
-        <td><?= (rev || 0).toLocaleString() ?></td>
-        <td>
-          <div class="score-bar-wrap">
-            <div class="score-bar-bg"><div class="score-bar-fill" style="width:<?= pct ?>%;background:#0f3460"></div></div>
-            <span class="score-num"><?= pct ?>%</span>
+         var maxSale = Math.max.apply(null, cats.map(function(c){ return d.sales.byCategory[c]; })); ?>
+      <div class="h-bar-chart">
+        <? cats.forEach(function(cat) {
+             var rev  = d.sales.byCategory[cat];
+             var pct  = Math.round((rev/maxSale)*100);
+             var share = d.sales.totalRevenue ? (rev/d.sales.totalRevenue*100).toFixed(1) : 0;
+        ?>
+        <div class="h-bar-row">
+          <span class="h-bar-label"><?= cat ?></span>
+          <div class="h-bar-track">
+            <div class="h-bar-fill" style="width:<?= pct ?>%">
+              <span class="h-bar-num"><?= share ?>%</span>
+            </div>
           </div>
-        </td>
-      </tr>
-      <? }); ?>
-    </tbody>
-  </table>
-</div>
-<? } ?>
+        </div>
+        <? }); ?>
+      </div>
+      <? } ?>
 
-<!-- ── ERRANDS ────────────────────────────────────────────── -->
-<div class="section">
-  <div class="section-title">Errands · <?= d.errands.length ?> Assignment<?= d.errands.length !== 1 ? "s" : "" ?></div>
-  <? if (d.errands.length) { ?>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Type</th>
-        <th>Destination</th>
-        <th>Reason</th>
-        <th>Cost (XAF)</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <? d.errands.forEach(function(e) { ?>
-      <tr>
-        <td><?= e.date ?></td>
-        <td><span class="badge badge-blue"><?= e.type ?></span></td>
-        <td><?= e.destination ?></td>
-        <td><?= e.reason ?></td>
-        <td><?= (e.cost || 0).toLocaleString() ?></td>
-        <td>
-          <span class="badge <?= e.status === 'Completed' ? 'badge-green' : e.status === 'Pending' ? 'badge-yellow' : 'badge-red' ?>">
-            <?= e.status ?>
-          </span>
-        </td>
-      </tr>
-      <? }); ?>
-    </tbody>
-  </table>
-  <? } else { ?>
-  <div class="empty-state">No errands assigned to this employee in this period.</div>
-  <? } ?>
-</div>
+      <div class="section-heading">Errands · <?= d.errands.length ?> Assignment<?= d.errands.length !== 1 ? "s" : "" ?></div>
+      <? if (d.errands.length) { ?>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Destination</th>
+            <th style="text-align:left">Reason</th>
+            <th>Cost (XAF)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? d.errands.forEach(function(e) { ?>
+          <tr>
+            <td><?= e.date ?></td>
+            <td><span class="badge badge-blue"><?= e.type ?></span></td>
+            <td><?= e.destination ?></td>
+            <td style="text-align:left;font-size:9px"><?= e.reason ?></td>
+            <td><?= (e.cost || 0).toLocaleString() ?></td>
+            <td>
+              <span class="badge <?= e.status === 'Completed' ? 'badge-green' : e.status === 'Pending' ? 'badge-yellow' : 'badge-red' ?>">
+                <?= e.status ?>
+              </span>
+            </td>
+          </tr>
+          <? }); ?>
+        </tbody>
+      </table>
+      <? } else { ?>
+      <div class="empty-state">No errands assigned to this employee in this period.</div>
+      <? } ?>
 
-<!-- ── INCIDENTS REPORTED ─────────────────────────────────── -->
-<div class="section">
-  <div class="section-title">Incidents & Repairs Reported</div>
-  <? if (d.incidents.length) { ?>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Equipment</th>
-        <th>Issue</th>
-        <th>Severity</th>
-        <th>Cost (XAF)</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <? d.incidents.forEach(function(inc) { ?>
-      <tr>
-        <td><?= inc.date ?></td>
-        <td style="font-weight:600"><?= inc.item ?></td>
-        <td><?= inc.description ?></td>
-        <td>
-          <span class="badge <?= inc.severity === 'High' ? 'badge-red' : inc.severity === 'Medium' ? 'badge-yellow' : 'badge-green' ?>">
-            <?= inc.severity ?>
-          </span>
-        </td>
-        <td><?= (inc.cost || 0).toLocaleString() ?></td>
-        <td>
-          <span class="badge <?= inc.status === 'Resolved' ? 'badge-green' : inc.status === 'Pending' ? 'badge-yellow' : 'badge-blue' ?>">
-            <?= inc.status ?>
-          </span>
-        </td>
-      </tr>
-      <? }); ?>
-    </tbody>
-  </table>
-  <? } else { ?>
-  <div class="empty-state">No incidents reported by this employee in this period.</div>
-  <? } ?>
-</div>
+      <div class="section-heading">Incidents &amp; Repairs Reported</div>
+      <? if (d.incidents.length) { ?>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Equipment</th>
+            <th style="text-align:left">Issue</th>
+            <th>Severity</th>
+            <th>Cost (XAF)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? d.incidents.forEach(function(inc) { ?>
+          <tr>
+            <td><?= inc.date ?></td>
+            <td style="font-weight:600"><?= inc.item ?></td>
+            <td style="text-align:left;font-size:9px"><?= inc.description ?></td>
+            <td>
+              <span class="badge <?= inc.severity === 'High' ? 'badge-red' : inc.severity === 'Medium' ? 'badge-yellow' : 'badge-green' ?>">
+                <?= inc.severity ?>
+              </span>
+            </td>
+            <td><?= (inc.cost || 0).toLocaleString() ?></td>
+            <td>
+              <span class="badge <?= inc.status === 'Resolved' ? 'badge-green' : inc.status === 'Pending' ? 'badge-yellow' : 'badge-blue' ?>">
+                <?= inc.status ?>
+              </span>
+            </td>
+          </tr>
+          <? }); ?>
+        </tbody>
+      </table>
+      <? } else { ?>
+      <div class="empty-state">No incidents reported by this employee in this period.</div>
+      <? } ?>
 
-</div><!-- /content -->
+    </div>
+  </div>
 
-<!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
-<div class="report-footer">
-  <div class="footer-img">
+  <!-- ══ BROWSER TAIL FOOTER (screen preview only — print uses .print-footer) ══ -->
+  <div class="report-footer">
     <img src="<?= footerUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+    <p>Fako Mart Employee Performance Report · <?= d.month ?> <?= d.year ?> · Generated <?= d.reportDate ?> · Confidential — Internal Use Only</p>
   </div>
-  <div class="footer-text">
-    Fako Mart Employee Performance Report · <?= d.month ?> <?= d.year ?><br>
-    Generated on <?= d.reportDate ?> · Confidential — Internal Use Only
-  </div>
-</div>
 
+</div><!-- /report-wrapper -->
 </body>
 </html>
