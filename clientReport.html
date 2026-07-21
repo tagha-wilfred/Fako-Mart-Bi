@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<!--
+  clientReport.html  —  Fako Mart BI System
+  PRESENTATION LAYER — Big Client Account Report
+  Modelled on the Woldenga owner report design language:
+    • Montserrat font  • Black header bar  • Brand-blue tables
+    • Sticky toolbar with native window.print() PDF download
+    • @page / @media print for clean multi-page PDF output
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><?= reportData.month ?> <?= reportData.year ?> — Client Account Report</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-blue      : #9FC5E8;
+    --brand-blue-dark : #7aaecf;
+    --brand-black     : #020303;
+    --brand-grey      : #919396;
+    --brand-white     : #FFFFFF;
+    --font-brand      : 'Montserrat', sans-serif;
+    --green           : #2d8a3e;
+    --red             : #b71c1c;
+    --amber           : #b45309;
+    --pad-x           : 42px;
+  }
+
+  @page :first { size: A4 portrait; margin: 22mm 14mm 14mm 14mm; }
+  @page         { size: A4 portrait; margin: 22mm 14mm 14mm 14mm; }
+
+  body {
+    background: #d4d4d4;
+    font-family: var(--font-brand);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ══ BROWSER-ONLY TOOLBAR ══ */
+  .preview-toolbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 2000;
+    background: var(--brand-black);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .preview-toolbar-title {
+    font-family: var(--font-brand);
+    font-weight: 700; font-size: 11px;
+    color: var(--brand-white);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .btn-download {
+    background: var(--brand-white);
+    color: var(--brand-black);
+    font-family: var(--font-brand);
+    font-weight: 700; font-size: 12px;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    border: none; padding: 9px 20px;
+    cursor: pointer; border-radius: 2px;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.15s;
+  }
+  .btn-download:hover { background: #e0e0e0; }
+
+  /* ══ PRINT-ONLY HEADER ══ */
+  .print-header { display: none; }
+  @media print {
+    .print-header {
+      display: block; position: fixed;
+      top: 0; left: 0; right: 0; height: 8mm;
+      background: var(--brand-white); z-index: 600;
+    }
+    .print-header-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      height: 100%; padding: 0 14mm;
+      border-bottom: 1px solid var(--brand-blue);
+    }
+    .print-header-inner span {
+      font-family: var(--font-brand); font-size: 6pt;
+      color: var(--brand-black); letter-spacing: 0.07em; text-transform: uppercase;
+    }
+  }
+
+  /* ══ PRINT-ONLY FOOTER ══ */
+  .print-footer { display: none; }
+  @media print {
+    .print-footer {
+      display: block; position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--brand-white);
+      text-align: center; z-index: 500; padding: 2px 0;
+    }
+    .print-footer img { max-height: 10mm; display: inline-block; }
+  }
+
+  /* ══ PRINT OVERRIDES ══ */
+  @media print {
+    .preview-toolbar { display: none !important; }
+    .report-wrapper { padding-top: 0 !important; box-shadow: none !important; max-width: none !important; }
+    body { background: var(--brand-white); }
+    .data-table { page-break-inside: auto; }
+    .data-table tr { page-break-inside: avoid; page-break-after: auto; }
+    .data-table thead { display: table-header-group; }
+    .section-break { page-break-before: always; }
+    .h-bar-chart, .month-cards { page-break-inside: avoid; }
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ══ REPORT WRAPPER ══ */
+  .report-wrapper {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: var(--brand-white);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    padding-top: 50px;
+  }
+
+  .page-spacer-table { width: 100%; border-collapse: collapse; border: none; }
+  .page-spacer-cell  { height: 8mm; min-height: 8mm; padding: 0; border: none; line-height: 0; font-size: 0; }
+
+  /* ══ COVER HEADER ══ */
+  .cover-header { display: flex; align-items: flex-end; padding: 18px 0 0 28px; background: var(--brand-white); }
+  .logo-block { flex-shrink: 0; padding-bottom: 6px; }
+  .logo-block img { height: 56px; width: auto; display: block; object-fit: contain; }
+  .header-right { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-left: 18px; }
+  .header-rule { height: 8px; background: var(--brand-black); width: 100%; }
+  .header-report-title {
+    font-family: var(--font-brand); font-size: 16px; font-weight: 700;
+    color: var(--brand-black); text-transform: uppercase; letter-spacing: 0.5px;
+    text-align: right; padding: 5px 28px 8px 0;
+  }
+
+  /* ── Slim header for inner pages ── */
+  .slim-header { display: flex; flex-direction: column; }
+  .slim-header-top { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 28px 6px; }
+  .slim-header-company { font-family: var(--font-brand); font-weight: 700; font-size: 10px; letter-spacing: 1px; color: var(--brand-black); text-transform: uppercase; }
+  .slim-header-period  { font-family: var(--font-brand); font-weight: 600; font-size: 10px; letter-spacing: 0.5px; color: var(--brand-grey); text-transform: uppercase; }
+  .slim-header-rule { height: 5px; background: var(--brand-black); width: 100%; }
+
+  /* ══ HERO BAND ══ */
+  .hero-band { background: var(--brand-blue); padding: 26px var(--pad-x); display: flex; flex-direction: column; gap: 6px; }
+  .hero-client { font-family: var(--font-brand); font-weight: 800; font-size: 20px; color: var(--brand-black); text-transform: uppercase; }
+  .hero-sub    { font-family: var(--font-brand); font-weight: 600; font-size: 12px; color: var(--brand-black); }
+
+  /* ══ CONTENT ══ */
+  .content { padding: 28px var(--pad-x) 0; }
+
+  .section-heading {
+    font-family: var(--font-brand); font-weight: 800; font-size: 14px;
+    color: var(--brand-black); text-transform: uppercase; letter-spacing: 0.3px;
+    padding-bottom: 7px; border-bottom: 1.5px solid var(--brand-black); margin-bottom: 16px;
+  }
+  .sub-heading {
+    font-family: var(--font-brand); font-weight: 700; font-size: 12px;
+    color: var(--brand-black); text-transform: uppercase; letter-spacing: 0.3px;
+    margin-bottom: 12px; margin-top: 20px;
+  }
+
+  /* ══ KPI CARDS ══ */
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+  .kpi-card {
+    background: #f5f8fb; border: 1px solid #dde6ee;
+    border-top: 4px solid var(--brand-blue-dark);
+    border-radius: 4px; padding: 12px 14px; text-align: center;
+  }
+  .kpi-card.accent-green { border-top-color: var(--green); }
+  .kpi-card.accent-red   { border-top-color: var(--red); }
+  .kpi-card.accent-amber { border-top-color: var(--amber); }
+  .kpi-card.accent-black { border-top-color: var(--brand-black); }
+  .kpi-label { font-family: var(--font-brand); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-grey); margin-bottom: 4px; }
+  .kpi-value { font-family: var(--font-brand); font-size: 18px; font-weight: 800; color: var(--brand-black); line-height: 1.1; }
+  .kpi-sub   { font-family: var(--font-brand); font-size: 9px; color: var(--brand-grey); margin-top: 2px; }
+
+  /* ══ PAYMENT HEALTH BAR ══ */
+  .payment-health { margin-bottom: 18px; border: 1px solid #dde6ee; border-radius: 4px; padding: 14px 16px; background: #f9fbfd; }
+  .payment-health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .payment-health-title { font-family: var(--font-brand); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-black); }
+  .grade-badge { display: inline-block; width: 28px; height: 28px; line-height: 28px; border-radius: 50%; text-align: center; font-family: var(--font-brand); font-size: 13px; font-weight: 800; }
+  .grade-A { background: #d4edda; color: #155724; }
+  .grade-B { background: #d1ecf1; color: #0c5460; }
+  .grade-C { background: #fff3cd; color: #856404; }
+  .grade-D { background: #f8d7da; color: #721c24; }
+  .health-bar-bg { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+  .health-bar-fill { height: 100%; border-radius: 5px; }
+  .health-bar-fill.grade-A-fill { background: var(--green); }
+  .health-bar-fill.grade-B-fill { background: #0c5460; }
+  .health-bar-fill.grade-C-fill { background: var(--amber); }
+  .health-bar-fill.grade-D-fill { background: var(--red); }
+  .health-bar-labels { display: flex; justify-content: space-between; margin-top: 4px; }
+  .health-bar-labels span { font-family: var(--font-brand); font-size: 9px; color: var(--brand-grey); }
+
+  /* ══ PROFILE GRID ══ */
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 18px; border: 1px solid #dde6ee; border-radius: 4px; overflow: hidden; }
+  .profile-cell { padding: 9px 14px; border-bottom: 1px solid #eef2f6; }
+  .profile-cell:nth-child(odd) { background: #f9fbfd; }
+  .profile-cell-label { font-family: var(--font-brand); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-grey); }
+  .profile-cell-value { font-family: var(--font-brand); font-size: 11px; font-weight: 600; color: var(--brand-black); margin-top: 2px; }
+
+  /* ══ DATA TABLE ══ */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 18px; }
+  .data-table th {
+    background: var(--brand-blue); font-family: var(--font-brand);
+    font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.3px;
+    color: var(--brand-black); padding: 9px 8px; text-align: center; border: 1px solid #b8d2e8;
+  }
+  .data-table td {
+    font-family: var(--font-brand); border: 1px solid #d0d0d0;
+    padding: 7px 8px; text-align: center; color: #333; font-size: 10px;
+  }
+  .data-table td:first-child { text-align: left; font-weight: 600; }
+  .data-table tr:last-child td { font-weight: 700; background: #f7f7f7; }
+  .data-table tr:nth-child(even):not(:last-child) td { background: #fafbfd; }
+
+  /* ══ HORIZONTAL BAR CHART ══ */
+  .h-bar-chart { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+  .h-bar-row { display: flex; align-items: center; gap: 10px; }
+  .h-bar-label { font-family: var(--font-brand); font-size: 10px; color: var(--brand-black); width: 120px; flex-shrink: 0; text-align: right; }
+  .h-bar-track { flex: 1; height: 26px; background: #e8f2fa; border-radius: 2px; overflow: hidden; }
+  .h-bar-fill { height: 100%; background: var(--brand-blue); border-radius: 2px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+  .h-bar-num { font-family: var(--font-brand); font-weight: 700; font-size: 10px; color: var(--brand-black); }
+
+  /* ══ MONTH CARDS ══ */
+  .month-cards { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .month-card { flex: 1; min-width: 130px; border: 1px solid #dde6ee; border-top: 3px solid var(--brand-blue-dark); border-radius: 4px; padding: 12px 14px; background: #f9fbfd; }
+  .month-card-title { font-family: var(--font-brand); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-black); margin-bottom: 8px; }
+  .month-card-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .month-card-key { font-family: var(--font-brand); font-size: 9px; color: var(--brand-grey); text-transform: uppercase; letter-spacing: 0.3px; }
+  .month-card-val { font-family: var(--font-brand); font-size: 10px; font-weight: 700; color: var(--brand-black); }
+  .month-card-val.positive { color: var(--green); }
+  .month-card-val.negative { color: var(--red); }
+
+  /* ══ BADGES ══ */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 2px; font-family: var(--font-brand); font-size: 9px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+  .badge-paid      { background: #d4edda; color: #155724; }
+  .badge-partial   { background: #fff3cd; color: #856404; }
+  .badge-unpaid    { background: #f8d7da; color: #721c24; }
+  .badge-active    { background: #d4edda; color: #155724; }
+  .badge-overdue   { background: #f8d7da; color: #721c24; }
+  .badge-watchlist { background: #fff3cd; color: #856404; }
+
+  .section-break { page-break-before: always; }
+  .empty-note { font-family: var(--font-brand); font-size: 11px; color: var(--brand-grey); margin-bottom: 16px; font-style: italic; }
+</style>
+</head>
+
+<body>
+<?
+  var d = reportData;
+  var p = d.profile;
+
+  function fmt(n) { return (n || 0).toLocaleString(); }
+  function prettyMonth(ym) {
+    if (!ym) return "—";
+    var parts = ym.split("-");
+    var m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return m[parseInt(parts[1])-1] + " " + parts[0];
+  }
+  function statusBadge(s) {
+    if (!s) return "";
+    var cls = s.toLowerCase() === "active" ? "badge-active" :
+              s.toLowerCase() === "overdue" ? "badge-unpaid" : "badge-watchlist";
+    return '<span class="badge ' + cls + '">' + s + '</span>';
+  }
+  function payBadge(s) {
+    var cls = s === "Paid" ? "badge-paid" : s === "Partial" ? "badge-partial" : "badge-unpaid";
+    return '<span class="badge ' + cls + '">' + s + '</span>';
+  }
+  function gradeClass(g) { return "grade-" + (g || "D"); }
+  function fillClass(g)  { return "grade-" + (g || "D") + "-fill"; }
+?>
+
+<!-- ══ BROWSER TOOLBAR ══ -->
+<div class="preview-toolbar">
+  <span class="preview-toolbar-title">Fako Mart — <?= d.month ?> <?= d.year ?> Client Account Report</span>
+  <button class="btn-download" onclick="window.print()">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <path d="M6.5 1v8M3.5 6.5l3 3 3-3M1 10.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Download PDF
+  </button>
+</div>
+
+<!-- ══ PRINT-ONLY HEADER ══ -->
+<div class="print-header">
+  <div class="print-header-inner">
+    <span>Fako Mart</span>
+    <span><?= d.month ?> <?= d.year ?> Client Account Report</span>
+  </div>
+</div>
+
+<!-- ══ PRINT-ONLY FOOTER ══ -->
+<div class="print-footer">
+  <img src="<?= footerUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+</div>
+
+<!-- ══ REPORT WRAPPER ══ -->
+<div class="report-wrapper">
+  <table class="page-spacer-table"><thead><tr><th class="page-spacer-cell"></th></tr></thead><tbody><tr><td class="page-spacer-cell"></td></tr></tbody></table>
+
+  <!-- ═══════════════════════════════════
+       PAGE 1 — COVER: Profile + KPIs
+  ════════════════════════════════════ -->
+  <div class="section-cover">
+
+    <div class="cover-header">
+      <div class="logo-block">
+        <img src="<?= logoUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+      </div>
+      <div class="header-right">
+        <div class="header-report-title"><?= d.month ?>, <?= d.year ?> Client Account Report</div>
+        <div class="header-rule"></div>
+      </div>
+    </div>
+
+    <div class="hero-band">
+      <span class="hero-client"><?= p.businessName ?></span>
+      <span class="hero-sub">Report Period: <?= d.month ?>, <?= d.year ?></span>
+      <span class="hero-sub">Date: <?= d.reportDate ?> &nbsp;|&nbsp; Contact: <?= p.contactPerson ?> &nbsp;|&nbsp; <?= p.phone ?></span>
+    </div>
+
+    <div class="content">
+
+      <h2 class="section-heading">Account Snapshot</h2>
+      <div class="kpi-row">
+        <div class="kpi-card accent-black">
+          <div class="kpi-label">Total Invoiced</div>
+          <div class="kpi-value"><?= fmt(d.totalInvoiced) ?></div>
+          <div class="kpi-sub">XAF this period</div>
+        </div>
+        <div class="kpi-card accent-green">
+          <div class="kpi-label">Total Paid</div>
+          <div class="kpi-value"><?= fmt(d.totalPaid) ?></div>
+          <div class="kpi-sub">XAF received</div>
+        </div>
+        <div class="kpi-card <?= d.totalBalance > 0 ? 'accent-red' : 'accent-green' ?>">
+          <div class="kpi-label">Outstanding Balance</div>
+          <div class="kpi-value"><?= fmt(d.totalBalance) ?></div>
+          <div class="kpi-sub"><?= d.totalBalance > 0 ? 'XAF outstanding' : 'Fully settled' ?></div>
+        </div>
+        <div class="kpi-card <?= d.paymentGrade === 'A' ? 'accent-green' : d.paymentGrade === 'D' ? 'accent-red' : 'accent-amber' ?>">
+          <div class="kpi-label">Payment Rate</div>
+          <div class="kpi-value"><?= d.paymentRate ?>%</div>
+          <div class="kpi-sub">Grade <?= d.paymentGrade ?> — <?= d.paymentLabel ?></div>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Orders Placed</div>
+          <div class="kpi-value"><?= d.orders.length ?></div>
+          <div class="kpi-sub">this period</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Order Value</div>
+          <div class="kpi-value"><?= fmt(d.totalOrderValue) ?></div>
+          <div class="kpi-sub">XAF gross</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tax Applied</div>
+          <div class="kpi-value"><?= fmt(d.totalTax) ?></div>
+          <div class="kpi-sub">XAF @ 9.975%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Invoices Raised</div>
+          <div class="kpi-value"><?= d.invoices.length ?></div>
+          <div class="kpi-sub"><?= d.monthsList.length ?> month<?= d.monthsList.length !== 1 ? 's' : '' ?></div>
+        </div>
+      </div>
+
+      <!-- PAYMENT HEALTH BAR -->
+      <div class="payment-health">
+        <div class="payment-health-header">
+          <span class="payment-health-title">Payment Health</span>
+          <span class="grade-badge <?= gradeClass(d.paymentGrade) ?>"><?= d.paymentGrade ?></span>
+        </div>
+        <div class="health-bar-bg">
+          <div class="health-bar-fill <?= fillClass(d.paymentGrade) ?>" style="width:<?= Math.min(d.paymentRate,100) ?>%"></div>
+        </div>
+        <div class="health-bar-labels">
+          <span><?= fmt(d.totalPaid) ?> XAF paid</span>
+          <span><?= d.paymentRate ?>% settled</span>
+          <span><?= fmt(d.totalBalance) ?> XAF due</span>
+        </div>
+      </div>
+
+      <!-- CLIENT PROFILE -->
+      <h3 class="sub-heading">Client Profile</h3>
+      <div class="profile-grid">
+        <div class="profile-cell">
+          <div class="profile-cell-label">Client ID</div>
+          <div class="profile-cell-value"><?= p.clientId ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Account Status</div>
+          <div class="profile-cell-value"><?!= statusBadge(p.status) ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Contact Person</div>
+          <div class="profile-cell-value"><?= p.contactPerson ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Phone</div>
+          <div class="profile-cell-value"><?= p.phone ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Payment Terms</div>
+          <div class="profile-cell-value"><?= p.paymentTerms ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Est. Monthly Volume</div>
+          <div class="profile-cell-value"><?= fmt(p.monthlyVolume) ?> XAF</div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Categories Purchased</div>
+          <div class="profile-cell-value"><?= p.categories ?></div>
+        </div>
+        <div class="profile-cell">
+          <div class="profile-cell-label">Last Order Date</div>
+          <div class="profile-cell-value"><?= p.lastOrderDate ?></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════
+       PAGE 2 — MONTHLY SUMMARY + ORDERS
+  ════════════════════════════════════ -->
+  <div class="section-orders section-break">
+
+    <div class="slim-header">
+      <div class="slim-header-top">
+        <span class="slim-header-company">Fako Mart</span>
+        <span class="slim-header-period"><?= d.month ?>, <?= d.year ?> Client Account Report</span>
+      </div>
+      <div class="slim-header-rule"></div>
+    </div>
+
+    <div class="content">
+
+      <h2 class="section-heading">Monthly Summary</h2>
+      <div class="month-cards">
+        <? for (var mi = 0; mi < d.monthSummary.length; mi++) { var ms = d.monthSummary[mi]; ?>
+        <div class="month-card">
+          <div class="month-card-title"><?= prettyMonth(ms.month) ?></div>
+          <div class="month-card-row">
+            <span class="month-card-key">Orders</span>
+            <span class="month-card-val"><?= ms.orderCount ?></span>
+          </div>
+          <div class="month-card-row">
+            <span class="month-card-key">Order Value</span>
+            <span class="month-card-val"><?= fmt(ms.orderValue) ?></span>
+          </div>
+          <div class="month-card-row">
+            <span class="month-card-key">Invoiced</span>
+            <span class="month-card-val"><?= fmt(ms.invoiced) ?></span>
+          </div>
+          <div class="month-card-row">
+            <span class="month-card-key">Paid</span>
+            <span class="month-card-val positive"><?= fmt(ms.paid) ?></span>
+          </div>
+          <div class="month-card-row">
+            <span class="month-card-key">Balance</span>
+            <span class="month-card-val <?= ms.balance > 0 ? 'negative' : 'positive' ?>"><?= fmt(ms.balance) ?></span>
+          </div>
+        </div>
+        <? } ?>
+      </div>
+
+      <h2 class="section-heading">Order History</h2>
+      <? if (d.orders.length > 0) { ?>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Order Date</th>
+            <th>Delivery Date</th>
+            <th>Value (XAF)</th>
+            <th>Paid (XAF)</th>
+            <th>Balance (XAF)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? for (var oi = 0; oi < d.orders.length; oi++) { var o = d.orders[oi]; ?>
+          <tr>
+            <td><?= o.orderId ?></td>
+            <td><?= o.orderDate ?></td>
+            <td><?= o.deliveryDate ?></td>
+            <td><?= fmt(o.orderValue) ?></td>
+            <td><?= fmt(o.amountPaid) ?></td>
+            <td style="<?= o.balance > 0 ? 'color:#b71c1c;font-weight:700' : 'color:#2d8a3e;font-weight:700' ?>"><?= fmt(o.balance) ?></td>
+            <td><?!= payBadge(o.payStatus) ?></td>
+          </tr>
+          <? } ?>
+          <tr>
+            <td>Total</td><td></td><td></td>
+            <td><?= fmt(d.totalOrderValue) ?></td>
+            <td><?= fmt(d.orders.reduce(function(t,o){ return t+o.amountPaid; },0)) ?></td>
+            <td><?= fmt(d.orders.reduce(function(t,o){ return t+o.balance; },0)) ?></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="sub-heading">Items Ordered</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th style="text-align:left;width:55%">Items</th>
+            <th>Handled By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? for (var oj = 0; oj < d.orders.length; oj++) { var ord = d.orders[oj]; ?>
+          <tr>
+            <td><?= ord.orderId ?></td>
+            <td><?= ord.orderDate ?></td>
+            <td style="text-align:left;font-size:9px"><?= ord.items ?></td>
+            <td><?= ord.handledBy ?></td>
+          </tr>
+          <? } ?>
+        </tbody>
+      </table>
+      <? } else { ?>
+      <p class="empty-note">No orders were placed during this period.</p>
+      <? } ?>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════
+       PAGE 3 — INVOICES + SPEND + ERRANDS
+  ════════════════════════════════════ -->
+  <div class="section-invoices section-break">
+
+    <div class="slim-header">
+      <div class="slim-header-top">
+        <span class="slim-header-company">Fako Mart</span>
+        <span class="slim-header-period"><?= d.month ?>, <?= d.year ?> Client Account Report</span>
+      </div>
+      <div class="slim-header-rule"></div>
+    </div>
+
+    <div class="content">
+
+      <h2 class="section-heading">Invoice Register</h2>
+      <? if (d.invoices.length > 0) { ?>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Invoice ID</th>
+            <th>Month</th>
+            <th>Orders (XAF)</th>
+            <th>Errand Cost (XAF)</th>
+            <th>Tax (XAF)</th>
+            <th>Total Invoice (XAF)</th>
+            <th>Paid (XAF)</th>
+            <th>Balance (XAF)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? for (var ii = 0; ii < d.invoices.length; ii++) { var inv = d.invoices[ii]; ?>
+          <tr>
+            <td><?= inv.invoiceId ?></td>
+            <td><?= prettyMonth(inv.monthCovered) ?></td>
+            <td><?= fmt(inv.ordersValue) ?></td>
+            <td><?= fmt(inv.errandCost) ?></td>
+            <td><?= fmt(inv.tax) ?></td>
+            <td style="font-weight:700"><?= fmt(inv.totalInvoice) ?></td>
+            <td style="color:#2d8a3e;font-weight:700"><?= fmt(inv.amountPaid) ?></td>
+            <td style="<?= inv.balance > 0 ? 'color:#b71c1c;font-weight:700' : 'color:#2d8a3e;font-weight:700' ?>"><?= fmt(inv.balance) ?></td>
+            <td><?!= payBadge(inv.payStatus) ?></td>
+          </tr>
+          <? } ?>
+          <tr>
+            <td>Total</td><td></td>
+            <td><?= fmt(d.invoices.reduce(function(t,i){ return t+i.ordersValue; },0)) ?></td>
+            <td><?= fmt(d.totalErrandCost) ?></td>
+            <td><?= fmt(d.totalTax) ?></td>
+            <td><?= fmt(d.totalInvoiced) ?></td>
+            <td><?= fmt(d.totalPaid) ?></td>
+            <td><?= fmt(d.totalBalance) ?></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="sub-heading">Payment Details</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Invoice ID</th>
+            <th>Pay Date</th>
+            <th>Method</th>
+            <th>Processed By</th>
+            <th style="text-align:left">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? for (var ik = 0; ik < d.invoices.length; ik++) { var pinv = d.invoices[ik]; ?>
+          <tr>
+            <td><?= pinv.invoiceId ?></td>
+            <td><?= pinv.payDate || "—" ?></td>
+            <td><?= pinv.payMethod || "—" ?></td>
+            <td><?= pinv.processedBy || "—" ?></td>
+            <td style="text-align:left;font-size:9px"><?= pinv.notes || "—" ?></td>
+          </tr>
+          <? } ?>
+        </tbody>
+      </table>
+      <? } else { ?>
+      <p class="empty-note">No invoices were raised during this period.</p>
+      <? } ?>
+
+      <!-- SPEND BY CATEGORY -->
+      <? var catKeys = Object.keys(d.categorySpend); if (catKeys.length > 0) { ?>
+      <h3 class="sub-heading">Spend by Category</h3>
+      <? var maxCat = Math.max.apply(null, catKeys.map(function(k){ return d.categorySpend[k]; }));
+         var totalCat = catKeys.reduce(function(t,k){ return t+d.categorySpend[k]; },0); ?>
+      <div class="h-bar-chart">
+        <? catKeys.sort(function(a,b){ return d.categorySpend[b]-d.categorySpend[a]; }).forEach(function(cat) {
+             var val = d.categorySpend[cat];
+             var pct   = Math.round((val/maxCat)*100);
+             var share = Math.round((val/totalCat)*100);
+        ?>
+        <div class="h-bar-row">
+          <span class="h-bar-label"><?= cat ?></span>
+          <div class="h-bar-track">
+            <div class="h-bar-fill" style="width:<?= pct ?>%">
+              <span class="h-bar-num"><?= share ?>%</span>
+            </div>
+          </div>
+        </div>
+        <? }); ?>
+      </div>
+      <? } ?>
+
+      <!-- ERRANDS -->
+      <h3 class="sub-heading">Delivery &amp; Errand Log</h3>
+      <? if (d.errands.length > 0) { ?>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Destination</th>
+            <th style="text-align:left">Reason</th>
+            <th>Cost (XAF)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <? for (var ei = 0; ei < d.errands.length; ei++) { var er = d.errands[ei]; ?>
+          <tr>
+            <td><?= er.date ?></td>
+            <td><?= er.type ?></td>
+            <td><?= er.destination ?></td>
+            <td style="text-align:left;font-size:9px"><?= er.reason ?></td>
+            <td><?= fmt(er.cost) ?></td>
+            <td><span class="badge <?= er.status === 'Completed' ? 'badge-paid' : er.status === 'Pending' ? 'badge-partial' : 'badge-unpaid' ?>"><?= er.status ?></span></td>
+          </tr>
+          <? } ?>
+          <tr>
+            <td>Total</td><td></td><td></td><td></td>
+            <td><?= fmt(d.errands.reduce(function(t,e){ return t+e.cost; },0)) ?></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+      <? } else { ?>
+      <p class="empty-note">No delivery errands recorded for this client in this period.</p>
+      <? } ?>
+
+    </div>
+  </div>
+
+</div><!-- /report-wrapper -->
+</body>
+</html>

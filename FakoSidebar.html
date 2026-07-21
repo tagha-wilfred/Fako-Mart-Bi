@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    background: #f4f6f9;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .sidebar-header {
+    background: #1a1a2e;
+    padding: 14px 16px 12px;
+    text-align: center;
+  }
+  .sidebar-header img {
+    height: 34px; object-fit: contain;
+    filter: brightness(0) invert(1); margin-bottom: 6px;
+  }
+  .sidebar-header h2 { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; }
+  .sidebar-header p  { color: rgba(255,255,255,0.55); font-size: 10px; margin-top: 2px; }
+
+  /* ── Report Type Tabs ── */
+  .report-tabs {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    background: #fff;
+  }
+  .report-tab {
+    flex: 1;
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7f8c9a;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+  }
+  .report-tab:hover { color: #1a1a2e; }
+  .report-tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+
+  /* ── Tab Panels ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: flex; flex-direction: column; gap: 14px; padding: 16px; }
+
+  /* ── Fields ── */
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px; color: #4a5568;
+  }
+  .field-label span { color: #e94560; }
+
+  input[type="number"] {
+    width: 100%; padding: 9px 11px;
+    border: 1.5px solid #dde1e7; border-radius: 7px;
+    font-size: 12px; color: #1a1a2e; background: #fff;
+    transition: border-color 0.2s;
+  }
+  input[type="number"]:focus { outline: none; border-color: #1a1a2e; }
+
+  /* ── Employee / Client type toggle ── */
+  .type-toggle { display: flex; gap: 6px; }
+  .type-btn {
+    flex: 1; padding: 8px;
+    border: 1.5px solid #dde1e7; border-radius: 7px;
+    font-size: 11px; font-weight: 700;
+    cursor: pointer; text-align: center;
+    background: #fff; color: #4a5568; transition: all 0.15s;
+  }
+  .type-btn.active { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+
+  /* ── Search + List ── */
+  .search-wrap { position: relative; }
+  .search-input {
+    width: 100%; padding: 9px 11px 9px 32px;
+    border: 1.5px solid #dde1e7; border-radius: 7px;
+    font-size: 12px; color: #1a1a2e; background: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 9px center;
+  }
+  .search-input:focus { outline: none; border-color: #1a1a2e; }
+
+  .entity-list {
+    max-height: 160px; overflow-y: auto;
+    border: 1.5px solid #dde1e7; border-radius: 7px;
+    margin-top: 5px; background: #fff;
+  }
+  .entity-option {
+    padding: 8px 11px; cursor: pointer;
+    border-bottom: 1px solid #f0f2f5; transition: background 0.1s;
+  }
+  .entity-option:last-child { border-bottom: none; }
+  .entity-option:hover    { background: #f0f4ff; }
+  .entity-option.selected { background: #e8eeff; }
+  .entity-name { font-weight: 600; font-size: 12px; color: #1a1a2e; }
+  .entity-meta { font-size: 10px; color: #aab2bd; }
+  .selected-label { display: none; margin-top: 4px; font-size: 11px; color: #1a1a2e; font-weight: 600; }
+
+  /* ── Month grid ── */
+  .month-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; }
+  .month-chip {
+    padding: 6px 4px; border: 1.5px solid #dde1e7; border-radius: 6px;
+    text-align: center; font-size: 11px; font-weight: 600;
+    cursor: pointer; user-select: none;
+    background: #fff; color: #4a5568; transition: all 0.15s;
+  }
+  .month-chip:hover  { border-color: #1a1a2e; color: #1a1a2e; }
+  .month-chip.selected { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+
+  /* ── Period summary ── */
+  .period-summary {
+    background: #f0f4ff; border: 1px solid #ccd8f0;
+    border-radius: 7px; padding: 8px 11px;
+    font-size: 11px; color: #1a1a2e; display: none;
+  }
+  .period-summary.visible { display: block; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: #eef0f4; }
+
+  /* ── Status + spinner ── */
+  .status-box { padding: 10px 12px; border-radius: 7px; font-size: 11px; display: none; }
+  .status-box.info    { background: #cce5ff; color: #004085; border: 1px solid #b8daff; display: block; }
+  .status-box.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+  .status-box.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+
+  .spinner { display: none; text-align: center; padding: 12px; color: #4a5568; font-size: 11px; }
+  .spinner.active { display: block; }
+  .spinner::before {
+    content: ''; display: inline-block; width: 16px; height: 16px;
+    border: 2px solid #dde1e7; border-top-color: #1a1a2e;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Buttons ── */
+  .btn {
+    width: 100%; padding: 11px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: #1a1a2e; color: #fff; }
+  .btn-primary:hover { background: #2d3748; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,26,46,0.3); }
+  .btn-primary:disabled { background: #aab2bd; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-hint { font-size: 10px; color: #aab2bd; text-align: center; margin-top: -4px; }
+
+  /* ── Client status dot ── */
+  .status-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; margin-right: 5px; vertical-align: middle;
+  }
+  .dot-active   { background: #2d8a3e; }
+  .dot-overdue  { background: #b71c1c; }
+  .dot-watchlist { background: #b45309; }
+</style>
+</head>
+
+<body>
+
+<!-- ── Header ── -->
+<div class="sidebar-header">
+  <img src="<?= logoUrl ?>" alt="Fako Mart" onerror="this.style.display='none'">
+  <h2>Fako Mart Reports</h2>
+  <p>BI Report Generator</p>
+</div>
+
+<!-- ── Report Type Tabs ── -->
+<div class="report-tabs">
+  <div class="report-tab active" id="tab-employee" onclick="switchTab('employee')">👷 Employee</div>
+  <div class="report-tab" id="tab-client"   onclick="switchTab('client')">🏢 Client</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     EMPLOYEE REPORT PANEL
+══════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-employee">
+
+  <!-- Employee Type -->
+  <div class="field-group">
+    <div class="field-label">Employee Type <span>*</span></div>
+    <div class="type-toggle">
+      <div class="type-btn active" id="typeWorker" onclick="selectType('Worker')">👷 Worker</div>
+      <div class="type-btn" id="typeLeader" onclick="selectType('Leader')">🏷 Leader</div>
+    </div>
+  </div>
+
+  <!-- Employee Search -->
+  <div class="field-group">
+    <div class="field-label">Employee <span>*</span></div>
+    <div class="search-wrap">
+      <input class="search-input" type="text" id="empSearch" placeholder="Search by name or ID…" oninput="filterEmployees()">
+    </div>
+    <div class="entity-list" id="empList">
+      <div class="entity-option" style="color:#aab2bd;font-size:11px;cursor:default">Loading…</div>
+    </div>
+    <div class="selected-label" id="empSelected"></div>
+  </div>
+
+  <!-- Year -->
+  <div class="field-group">
+    <div class="field-label">Year <span>*</span></div>
+    <input type="number" id="empYear" value="2025" min="2020" max="2030">
+  </div>
+
+  <!-- Months -->
+  <div class="field-group">
+    <div class="field-label">Months <span>*</span> <span style="color:#aab2bd;font-weight:400;text-transform:none">(select one or more)</span></div>
+    <div class="month-grid" id="empMonthGrid">
+      <? var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+         var SHORT  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+         MONTHS.forEach(function(m,i) { ?>
+      <div class="month-chip" data-month="<?= m ?>" onclick="toggleMonth(this,'emp')"><?= SHORT[i] ?></div>
+      <? }); ?>
+    </div>
+  </div>
+
+  <div class="period-summary" id="empPeriod"></div>
+  <div class="divider"></div>
+  <div class="status-box" id="empStatus"></div>
+  <div class="spinner"    id="empSpinner">Building report…</div>
+
+  <button class="btn btn-primary" id="empBtn" onclick="generateEmployeeReport()" disabled>
+    👁 Preview Report
+  </button>
+  <p class="btn-hint">Download PDF button is inside the report.</p>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     CLIENT REPORT PANEL
+══════════════════════════════════════ -->
+<div class="tab-panel" id="panel-client">
+
+  <!-- Client Search -->
+  <div class="field-group">
+    <div class="field-label">Client <span>*</span></div>
+    <div class="search-wrap">
+      <input class="search-input" type="text" id="cltSearch" placeholder="Search by name or ID…" oninput="filterClients()">
+    </div>
+    <div class="entity-list" id="cltList">
+      <div class="entity-option" style="color:#aab2bd;font-size:11px;cursor:default">Loading…</div>
+    </div>
+    <div class="selected-label" id="cltSelected"></div>
+  </div>
+
+  <!-- Year -->
+  <div class="field-group">
+    <div class="field-label">Year <span>*</span></div>
+    <input type="number" id="cltYear" value="2025" min="2020" max="2030">
+  </div>
+
+  <!-- Months -->
+  <div class="field-group">
+    <div class="field-label">Months <span>*</span> <span style="color:#aab2bd;font-weight:400;text-transform:none">(select one or more)</span></div>
+    <div class="month-grid" id="cltMonthGrid">
+      <? MONTHS.forEach(function(m,i) { ?>
+      <div class="month-chip" data-month="<?= m ?>" onclick="toggleMonth(this,'clt')"><?= SHORT[i] ?></div>
+      <? }); ?>
+    </div>
+  </div>
+
+  <div class="period-summary" id="cltPeriod"></div>
+  <div class="divider"></div>
+  <div class="status-box" id="cltStatus"></div>
+  <div class="spinner"    id="cltSpinner">Building report…</div>
+
+  <button class="btn btn-primary" id="cltBtn" onclick="generateClientReport()" disabled>
+    👁 Preview Report
+  </button>
+  <p class="btn-hint">Download PDF button is inside the report.</p>
+
+</div>
+
+<script>
+  // ── State ────────────────────────────────────────────────
+  var ALL_EMPLOYEES = [];
+  var ALL_CLIENTS   = [];
+  var selectedEmpId   = null;
+  var selectedEmpType = "Worker";
+  var selectedCltId   = null;
+  var empMonths = [];
+  var cltMonths = [];
+
+  // ── Init ─────────────────────────────────────────────────
+  window.onload = function() {
+    // Load employees
+    setStatus("emp","info","Loading employees…");
+    google.script.run
+      .withSuccessHandler(function(list) {
+        ALL_EMPLOYEES = list || [];
+        renderEmployees();
+        setStatus("emp", null);
+      })
+      .withFailureHandler(function(e) { setStatus("emp","error","Could not load employees: " + e.message); })
+      .getFakoEmployeeList();
+
+    // Load clients
+    setStatus("clt","info","Loading clients…");
+    google.script.run
+      .withSuccessHandler(function(list) {
+        ALL_CLIENTS = list || [];
+        renderClients();
+        setStatus("clt", null);
+      })
+      .withFailureHandler(function(e) { setStatus("clt","error","Could not load clients: " + e.message); })
+      .getFakoClientList();
+  };
+
+  // ── Tab switch ───────────────────────────────────────────
+  function switchTab(tab) {
+    ["employee","client"].forEach(function(t) {
+      document.getElementById("tab-"   + t).classList.toggle("active", t === tab);
+      document.getElementById("panel-" + t).classList.toggle("active", t === tab);
+    });
+  }
+
+  // ── Employee type toggle ─────────────────────────────────
+  function selectType(type) {
+    selectedEmpType = type;
+    document.getElementById("typeWorker").classList.toggle("active", type === "Worker");
+    document.getElementById("typeLeader").classList.toggle("active", type === "Leader");
+    selectedEmpId = null;
+    document.getElementById("empSelected").style.display = "none";
+    document.getElementById("empSearch").value = "";
+    renderEmployees();
+    updateEmpBtn();
+  }
+
+  // ── Employee list render ─────────────────────────────────
+  function renderEmployees() {
+    var container = document.getElementById("empList");
+    var search    = document.getElementById("empSearch").value.toLowerCase();
+    var filtered  = ALL_EMPLOYEES.filter(function(e) {
+      return e.type === selectedEmpType &&
+             (e.name.toLowerCase().indexOf(search) > -1 || e.id.toLowerCase().indexOf(search) > -1);
+    });
+    if (!filtered.length) {
+      container.innerHTML = '<div class="entity-option" style="color:#aab2bd;font-size:11px;cursor:default">No results.</div>';
+      return;
+    }
+    container.innerHTML = filtered.map(function(e) {
+      return '<div class="entity-option' + (e.id === selectedEmpId ? ' selected' : '') + '" ' +
+        'onclick="pickEmployee(\'' + e.id + '\',\'' + e.name.replace(/'/g,"\\'") + '\',\'' + e.dept.replace(/'/g,"\\'") + '\')">' +
+        '<div class="entity-name">' + e.name + ' <span style="color:#aab2bd;font-size:10px">(' + e.id + ')</span></div>' +
+        '<div class="entity-meta">' + e.dept + '</div></div>';
+    }).join("");
+  }
+
+  function filterEmployees() { renderEmployees(); }
+
+  function pickEmployee(id, name, dept) {
+    selectedEmpId = id;
+    var el = document.getElementById("empSelected");
+    el.textContent = "✓ " + name + " (" + id + ")";
+    el.style.display = "block";
+    renderEmployees();
+    updateEmpBtn();
+  }
+
+  // ── Client list render ───────────────────────────────────
+  function renderClients() {
+    var container = document.getElementById("cltList");
+    var search    = document.getElementById("cltSearch").value.toLowerCase();
+    var filtered  = ALL_CLIENTS.filter(function(c) {
+      return c.name.toLowerCase().indexOf(search) > -1 || c.id.toLowerCase().indexOf(search) > -1;
+    });
+    if (!filtered.length) {
+      container.innerHTML = '<div class="entity-option" style="color:#aab2bd;font-size:11px;cursor:default">No results.</div>';
+      return;
+    }
+    container.innerHTML = filtered.map(function(c) {
+      var dotCls = c.status === "Active" ? "dot-active" : c.status === "Overdue" ? "dot-overdue" : "dot-watchlist";
+      return '<div class="entity-option' + (c.id === selectedCltId ? ' selected' : '') + '" ' +
+        'onclick="pickClient(\'' + c.id + '\',\'' + c.name.replace(/'/g,"\\'") + '\',\'' + (c.status||'').replace(/'/g,"\\'") + '\')">' +
+        '<div class="entity-name"><span class="status-dot ' + dotCls + '"></span>' + c.name + ' <span style="color:#aab2bd;font-size:10px">(' + c.id + ')</span></div>' +
+        '<div class="entity-meta">' + c.dept + '</div></div>';
+    }).join("");
+  }
+
+  function filterClients() { renderClients(); }
+
+  function pickClient(id, name, status) {
+    selectedCltId = id;
+    var el = document.getElementById("cltSelected");
+    el.textContent = "✓ " + name + " (" + id + ")";
+    el.style.display = "block";
+    renderClients();
+    updateCltBtn();
+  }
+
+  // ── Month toggles ────────────────────────────────────────
+  function toggleMonth(chip, prefix) {
+    var month = chip.getAttribute("data-month");
+    var arr   = prefix === "emp" ? empMonths : cltMonths;
+    var idx   = arr.indexOf(month);
+    if (idx === -1) { arr.push(month); chip.classList.add("selected"); }
+    else            { arr.splice(idx,1); chip.classList.remove("selected"); }
+    updatePeriod(prefix);
+    if (prefix === "emp") updateEmpBtn(); else updateCltBtn();
+  }
+
+  function updatePeriod(prefix) {
+    var el   = document.getElementById(prefix + "Period");
+    var arr  = prefix === "emp" ? empMonths : cltMonths;
+    var year = document.getElementById(prefix + "Year").value;
+    if (!arr.length) { el.classList.remove("visible"); return; }
+    el.textContent = "Period: " + arr.join(", ") + " " + year;
+    el.classList.add("visible");
+  }
+
+  document.getElementById("empYear").addEventListener("input", function(){ updatePeriod("emp"); updateEmpBtn(); });
+  document.getElementById("cltYear").addEventListener("input", function(){ updatePeriod("clt"); updateCltBtn(); });
+
+  // ── Button states ────────────────────────────────────────
+  function updateEmpBtn() {
+    document.getElementById("empBtn").disabled =
+      !(selectedEmpId && empMonths.length && document.getElementById("empYear").value);
+  }
+  function updateCltBtn() {
+    document.getElementById("cltBtn").disabled =
+      !(selectedCltId && cltMonths.length && document.getElementById("cltYear").value);
+  }
+
+  // ── Generate Employee Report ─────────────────────────────
+  function generateEmployeeReport() {
+    if (!selectedEmpId || !empMonths.length) return;
+    var year = parseInt(document.getElementById("empYear").value);
+    setStatus("emp","info","Building report for " + selectedEmpId + "…");
+    document.getElementById("empSpinner").classList.add("active");
+    document.getElementById("empBtn").disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById("empSpinner").classList.remove("active");
+        document.getElementById("empBtn").disabled = false;
+        if (result && result.error) setStatus("emp","error","Error: " + result.error);
+        else setStatus("emp","success","✓ Report opened — use Download PDF inside it.");
+      })
+      .withFailureHandler(function(e) {
+        document.getElementById("empSpinner").classList.remove("active");
+        document.getElementById("empBtn").disabled = false;
+        setStatus("emp","error","Failed: " + e.message);
+      })
+      .previewFromFakoSidebar(selectedEmpId, empMonths, year, selectedEmpType);
+  }
+
+  // ── Generate Client Report ───────────────────────────────
+  function generateClientReport() {
+    if (!selectedCltId || !cltMonths.length) return;
+    var year = parseInt(document.getElementById("cltYear").value);
+    setStatus("clt","info","Building report for " + selectedCltId + "…");
+    document.getElementById("cltSpinner").classList.add("active");
+    document.getElementById("cltBtn").disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById("cltSpinner").classList.remove("active");
+        document.getElementById("cltBtn").disabled = false;
+        if (result && result.error) setStatus("clt","error","Error: " + result.error);
+        else setStatus("clt","success","✓ Report opened — use Download PDF inside it.");
+      })
+      .withFailureHandler(function(e) {
+        document.getElementById("cltSpinner").classList.remove("active");
+        document.getElementById("cltBtn").disabled = false;
+        setStatus("clt","error","Failed: " + e.message);
+      })
+      .previewClientFromSidebar(selectedCltId, cltMonths, year);
+  }
+
+  // ── Status helper ────────────────────────────────────────
+  function setStatus(prefix, type, message) {
+    var el = document.getElementById(prefix + "Status");
+    el.className = "status-box";
+    if (type) { el.classList.add(type); el.textContent = message; }
+  }
+</script>
+</body>
+</html>
